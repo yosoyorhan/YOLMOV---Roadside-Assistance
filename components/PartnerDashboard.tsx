@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   LayoutDashboard, List, History, Wallet, Settings, LogOut, 
   Bell, ChevronRight, MapPin, Clock, DollarSign, CheckCircle, 
@@ -116,13 +116,48 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
   // Route / Empty Leg State
   const [activeRoutes, setActiveRoutes] = useState(INITIAL_ROUTES);
-  const [routeOrigin, setRouteOrigin] = useState('İstanbul');
+  
+  // Route Autocomplete States
+  const [routeOrigin, setRouteOrigin] = useState('');
+  const [originSearch, setOriginSearch] = useState('');
+  const [isOriginOpen, setIsOriginOpen] = useState(false);
+  
   const [routeDestinations, setRouteDestinations] = useState<string[]>([]);
-  const [currentDestInput, setCurrentDestInput] = useState('');
+  const [destSearch, setDestSearch] = useState('');
+  const [isDestOpen, setIsDestOpen] = useState(false);
+  
   const [routeDate, setRouteDate] = useState('');
   const [routeTime, setRouteTime] = useState('');
+  
   const [routeVehicle, setRouteVehicle] = useState('');
+  const [isVehicleOpen, setIsVehicleOpen] = useState(false);
+  
   const [editingRouteId, setEditingRouteId] = useState<number | null>(null);
+
+  const cityList = Object.keys(CITIES_WITH_DISTRICTS);
+
+  // Refs for click-outside detection in Custom Dropdowns
+  const originRef = useRef<HTMLDivElement>(null);
+  const destRef = useRef<HTMLDivElement>(null);
+  const vehicleRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (originRef.current && !originRef.current.contains(event.target as Node)) {
+        setIsOriginOpen(false);
+      }
+      if (destRef.current && !destRef.current.contains(event.target as Node)) {
+        setIsDestOpen(false);
+      }
+      if (vehicleRef.current && !vehicleRef.current.contains(event.target as Node)) {
+        setIsVehicleOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Filter Logic
   const filteredRequests = requests.filter(req => {
@@ -229,10 +264,11 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     }
   };
 
-  const addDestination = () => {
-    if (currentDestInput && !routeDestinations.includes(currentDestInput)) {
-      setRouteDestinations([...routeDestinations, currentDestInput]);
-      setCurrentDestInput('');
+  const addDestination = (dest: string) => {
+    if (dest && !routeDestinations.includes(dest)) {
+      setRouteDestinations([...routeDestinations, dest]);
+      setDestSearch('');
+      setIsDestOpen(false);
     }
   };
 
@@ -243,6 +279,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const handleEditRoute = (route: any) => {
     setEditingRouteId(route.id);
     setRouteOrigin(route.origin);
+    setOriginSearch(route.origin);
     setRouteDestinations(route.destinations);
     setRouteDate(route.date);
     setRouteTime(route.time);
@@ -251,12 +288,13 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
   const cancelEdit = () => {
     setEditingRouteId(null);
-    setRouteOrigin('İstanbul');
+    setRouteOrigin('');
+    setOriginSearch('');
     setRouteDestinations([]);
     setRouteDate('');
     setRouteTime('');
     setRouteVehicle('');
-    setCurrentDestInput('');
+    setDestSearch('');
   };
 
   const handleAddRoute = () => {
@@ -291,12 +329,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
      }
      
      // Reset
-     setRouteOrigin('İstanbul');
-     setRouteDestinations([]);
-     setRouteDate('');
-     setRouteTime('');
-     setRouteVehicle('');
-     setCurrentDestInput('');
+     cancelEdit();
   };
 
   const handleRemoveRoute = (id: number) => {
@@ -715,155 +748,249 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     </div>
   );
 
-  const renderServiceRoutesTab = () => (
-    <div className="p-4 md:p-6 space-y-6">
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg shadow-blue-900/20">
-        <div className="relative z-10">
-            <h2 className="text-2xl font-bold mb-2">{editingRouteId ? 'Rotayı Düzenle' : 'Boş Dönüş & Hizmet Rotaları'}</h2>
-            <p className="text-blue-100 max-w-xl text-sm mb-6">
-                {editingRouteId 
-                    ? 'Mevcut rotadaki bilgileri güncelleyin.' 
-                    : 'Dönüş yolunda veya belirli tarihlerde gideceğiniz güzergahları ekleyin, o rotadaki iş fırsatlarını size öncelikli olarak ve indirimli sunalım.'}
-            </p>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* Origin */}
-                <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-blue-200">Kalkış (Nereden)</label>
-                    <select 
-                    value={routeOrigin}
-                    onChange={(e) => setRouteOrigin(e.target.value)}
-                    className="w-full bg-white/90 border-0 rounded-lg text-slate-900 text-sm py-2 px-3 focus:ring-2 focus:ring-blue-400 outline-none"
-                    >
-                    <option value="">İl Seçiniz</option>
-                    {Object.keys(CITIES_WITH_DISTRICTS).map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                </div>
+  const renderServiceRoutesTab = () => {
+      const filteredOriginCities = cityList.filter(c => c.toLowerCase().includes(originSearch.toLowerCase()));
+      const filteredDestCities = cityList.filter(c => c.toLowerCase().includes(destSearch.toLowerCase()));
+      const selectedVehicleData = MOCK_FLEET.find(v => v.plate === routeVehicle);
 
-                {/* Vehicle (New) */}
-                <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-blue-200">Araç Seçimi</label>
-                    <select 
-                    value={routeVehicle}
-                    onChange={(e) => setRouteVehicle(e.target.value)}
-                    className="w-full bg-white/90 border-0 rounded-lg text-slate-900 text-sm py-2 px-3 focus:ring-2 focus:ring-blue-400 outline-none"
-                    >
-                    <option value="">Araç Seçiniz</option>
-                    {MOCK_FLEET.map(v => (
-                        <option key={v.id} value={v.plate}>{v.plate} - {v.model}</option>
-                    ))}
-                    </select>
-                </div>
+      return (
+         <div className="p-4 md:p-6 space-y-6">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg shadow-blue-900/20">
+               <div className="relative z-10">
+                  <h2 className="text-2xl font-bold mb-2">{editingRouteId ? 'Rotayı Düzenle' : 'Boş Dönüş & Hizmet Rotaları'}</h2>
+                  <p className="text-blue-100 max-w-xl text-sm mb-6">
+                     {editingRouteId 
+                        ? 'Mevcut rotadaki bilgileri güncelleyin.' 
+                        : 'Dönüş yolunda veya belirli tarihlerde gideceğiniz güzergahları ekleyin, o rotadaki iş fırsatlarını size öncelikli olarak ve indirimli sunalım.'}
+                  </p>
+                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 grid grid-cols-1 md:grid-cols-4 gap-4">
+                     
+                     {/* Origin Autocomplete */}
+                     <div className="space-y-1 relative" ref={originRef}>
+                        <label className="text-[10px] font-bold uppercase text-blue-200">Kalkış (Nereden)</label>
+                        <div className="relative">
+                           <input 
+                              type="text"
+                              className="w-full bg-white/90 border-0 rounded-lg text-slate-900 text-sm py-2 px-3 focus:ring-2 focus:ring-blue-400 outline-none"
+                              placeholder="Şehir Ara..."
+                              value={originSearch}
+                              onChange={(e) => {
+                                 setOriginSearch(e.target.value);
+                                 if (!isOriginOpen) setIsOriginOpen(true);
+                              }}
+                              onFocus={() => setIsOriginOpen(true)}
+                           />
+                           {originSearch && (
+                               <button onClick={() => { setOriginSearch(''); setRouteOrigin(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500">
+                                   <X size={14} />
+                               </button>
+                           )}
+                        </div>
+                        <AnimatePresence>
+                           {isOriginOpen && (
+                              <motion.div 
+                                 initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }}
+                                 className="absolute top-full left-0 w-full mt-1 bg-white rounded-xl shadow-xl overflow-hidden z-50 max-h-48 overflow-y-auto"
+                              >
+                                 {filteredOriginCities.length > 0 ? filteredOriginCities.map(city => (
+                                    <button 
+                                       key={city}
+                                       onClick={() => {
+                                          setRouteOrigin(city);
+                                          setOriginSearch(city);
+                                          setIsOriginOpen(false);
+                                       }}
+                                       className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-slate-50 last:border-0"
+                                    >
+                                       {city}
+                                    </button>
+                                 )) : (
+                                     <div className="p-3 text-center text-xs text-slate-400">Şehir bulunamadı.</div>
+                                 )}
+                              </motion.div>
+                           )}
+                        </AnimatePresence>
+                     </div>
 
-                {/* Date & Time */}
-                <div className="space-y-1 md:col-span-2">
-                    <label className="text-[10px] font-bold uppercase text-blue-200">Tarih & Saat</label>
-                    <input 
-                    type="datetime-local" 
-                    className="w-full bg-white/90 border-0 rounded-lg text-slate-900 text-sm py-2 px-3 focus:ring-2 focus:ring-blue-400 outline-none"
-                    value={routeDate && routeTime ? `${routeDate}T${routeTime}` : ''}
-                    onChange={(e) => {
-                        const val = e.target.value;
-                        if(val) {
-                            setRouteDate(val.split('T')[0]);
-                            setRouteTime(val.split('T')[1]);
-                        }
-                    }}
-                    />
-                </div>
+                     {/* Vehicle Selector (Custom) */}
+                     <div className="space-y-1 relative" ref={vehicleRef}>
+                        <label className="text-[10px] font-bold uppercase text-blue-200">Araç Seçimi</label>
+                        <button 
+                           onClick={() => setIsVehicleOpen(!isVehicleOpen)}
+                           className="w-full bg-white/90 border-0 rounded-lg text-slate-900 text-sm py-2 px-3 focus:ring-2 focus:ring-blue-400 outline-none flex items-center justify-between"
+                        >
+                            {selectedVehicleData ? (
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <img src={selectedVehicleData.image} alt="v" className="w-5 h-5 rounded-full object-cover" />
+                                    <span className="truncate font-bold">{selectedVehicleData.plate}</span>
+                                </div>
+                            ) : (
+                                <span className="text-slate-400">Araç Seçiniz</span>
+                            )}
+                            <ChevronDown size={14} className="text-slate-400" />
+                        </button>
 
-                {/* Destinations */}
-                <div className="space-y-1 md:col-span-4">
-                    <label className="text-[10px] font-bold uppercase text-blue-200">Güzergah / Varışlar (Nereye)</label>
-                    <div className="flex gap-2">
-                    <div className="flex-1 flex items-center bg-white/90 rounded-lg px-2 overflow-hidden focus-within:ring-2 focus-within:ring-blue-400">
+                        <AnimatePresence>
+                           {isVehicleOpen && (
+                              <motion.div 
+                                 initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }}
+                                 className="absolute top-full left-0 w-full mt-1 bg-white rounded-xl shadow-xl overflow-hidden z-50"
+                              >
+                                 {MOCK_FLEET.map(v => (
+                                    <button 
+                                       key={v.id}
+                                       onClick={() => {
+                                          setRouteVehicle(v.plate);
+                                          setIsVehicleOpen(false);
+                                       }}
+                                       className="w-full text-left p-2 flex items-center gap-3 hover:bg-blue-50 border-b border-slate-50 last:border-0 transition-colors"
+                                    >
+                                        <img src={v.image} alt={v.plate} className="w-10 h-10 rounded-lg object-cover" />
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-800">{v.plate}</p>
+                                            <p className="text-xs text-slate-500">{v.model}</p>
+                                        </div>
+                                    </button>
+                                 ))}
+                              </motion.div>
+                           )}
+                        </AnimatePresence>
+                     </div>
+
+                     {/* Date & Time */}
+                     <div className="space-y-1 md:col-span-2">
+                        <label className="text-[10px] font-bold uppercase text-blue-200">Tarih & Saat</label>
                         <input 
-                            type="text" 
-                            placeholder="İl veya İlçe ekle..." 
-                            className="w-full bg-transparent border-none text-slate-900 text-sm py-2 px-1 focus:ring-0 outline-none placeholder-slate-400"
-                            value={currentDestInput}
-                            onChange={(e) => setCurrentDestInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && addDestination()}
+                        type="datetime-local" 
+                        className="w-full bg-white/90 border-0 rounded-lg text-slate-900 text-sm py-2 px-3 focus:ring-2 focus:ring-blue-400 outline-none"
+                        value={routeDate && routeTime ? `${routeDate}T${routeTime}` : ''}
+                        onChange={(e) => {
+                           const val = e.target.value;
+                           if(val) {
+                                 setRouteDate(val.split('T')[0]);
+                                 setRouteTime(val.split('T')[1]);
+                           }
+                        }}
                         />
-                        <button onClick={addDestination} className="p-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"><Plus size={14} /></button>
-                    </div>
-                    </div>
-                    {routeDestinations.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                        {routeDestinations.map(d => (
-                            <span key={d} className="bg-blue-800/50 text-white text-xs px-2 py-0.5 rounded flex items-center gap-1 border border-blue-400/30">
-                            {d} <button onClick={() => removeDestination(d)}><X size={10} /></button>
-                            </span>
-                        ))}
-                    </div>
-                    )}
-                </div>
+                     </div>
 
-                {/* Actions */}
-                <div className="md:col-span-4 flex justify-end pt-2 gap-3">
-                    {editingRouteId && (
-                        <button onClick={cancelEdit} className="bg-white/10 border border-white/30 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-white/20 transition-all">
-                            İptal
-                        </button>
-                    )}
-                    <button onClick={handleAddRoute} className="bg-white text-blue-700 px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 shadow-lg transition-all transform active:scale-95 flex items-center gap-2">
-                    <Save size={16} /> {editingRouteId ? 'Değişiklikleri Kaydet' : 'Rotayı Kaydet'}
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
-            <Map size={300} />
-        </div>
-    </div>
+                     {/* Destinations Autocomplete */}
+                     <div className="space-y-1 md:col-span-4 relative" ref={destRef}>
+                        <label className="text-[10px] font-bold uppercase text-blue-200">Güzergah / Varışlar (Nereye)</label>
+                        <div className="flex gap-2">
+                           <div className="flex-1 relative">
+                                <input 
+                                    type="text" 
+                                    placeholder="Şehir ekle..." 
+                                    className="w-full bg-white/90 border-0 rounded-lg text-slate-900 text-sm py-2 px-3 focus:ring-2 focus:ring-blue-400 outline-none placeholder-slate-400"
+                                    value={destSearch}
+                                    onChange={(e) => {
+                                        setDestSearch(e.target.value);
+                                        if (!isDestOpen) setIsDestOpen(true);
+                                    }}
+                                    onFocus={() => setIsDestOpen(true)}
+                                />
+                                 <AnimatePresence>
+                                    {isDestOpen && destSearch && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }}
+                                            className="absolute top-full left-0 w-full mt-1 bg-white rounded-xl shadow-xl overflow-hidden z-50 max-h-48 overflow-y-auto"
+                                        >
+                                            {filteredDestCities.length > 0 ? filteredDestCities.map(city => (
+                                                <button 
+                                                    key={city}
+                                                    onClick={() => addDestination(city)}
+                                                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-slate-50 last:border-0 flex justify-between items-center group"
+                                                >
+                                                    {city}
+                                                    <Plus size={14} className="text-slate-300 group-hover:text-blue-500" />
+                                                </button>
+                                            )) : (
+                                                <div className="p-3 text-center text-xs text-slate-400">Şehir bulunamadı.</div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                           </div>
+                        </div>
+                        {routeDestinations.length > 0 && (
+                           <div className="flex flex-wrap gap-2 mt-2">
+                              {routeDestinations.map(d => (
+                                 <span key={d} className="bg-blue-800/50 text-white text-xs px-2 py-1 rounded-lg flex items-center gap-1 border border-blue-400/30 shadow-sm">
+                                    {d} <button onClick={() => removeDestination(d)} className="hover:text-red-300 transition-colors"><X size={12} /></button>
+                                 </span>
+                              ))}
+                           </div>
+                        )}
+                     </div>
 
-    <div className="space-y-4">
-        <h3 className="font-bold text-slate-800 text-lg ml-1">Aktif Rotalarım</h3>
-        {activeRoutes.length > 0 ? (
-            activeRoutes.map(route => (
-                <div key={route.id} className={`bg-white rounded-2xl border p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm transition-all ${editingRouteId === route.id ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50' : 'border-slate-200'}`}>
-                <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
-                        <Route size={24} />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-bold text-slate-900">{route.origin}</h4>
-                            <ArrowRight size={14} className="text-slate-400" />
-                            <span className="text-slate-600">{route.destinations.join(', ')}</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
-                            <span className="flex items-center gap-1"><Calendar size={12} /> {route.date}</span>
-                            <span className="flex items-center gap-1"><Clock size={12} /> {route.time}</span>
-                            <span className="flex items-center gap-1"><Truck size={12} /> {route.vehicle}</span>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                    {route.matches > 0 && (
-                        <div className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-bold flex items-center gap-1">
-                            <Zap size={12} /> {route.matches} İş Eşleşti
-                        </div>
-                    )}
-                    <div className="flex ml-auto md:ml-0 gap-2">
-                        <button onClick={() => handleEditRoute(route)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                            <PenTool size={18} />
+                     {/* Actions */}
+                     <div className="md:col-span-4 flex justify-end pt-2 gap-3">
+                        {editingRouteId && (
+                           <button onClick={cancelEdit} className="bg-white/10 border border-white/30 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-white/20 transition-all">
+                                 İptal
+                           </button>
+                        )}
+                        <button onClick={handleAddRoute} className="bg-white text-blue-700 px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 shadow-lg transition-all transform active:scale-95 flex items-center gap-2">
+                           <Save size={16} /> {editingRouteId ? 'Değişiklikleri Kaydet' : 'Rotayı Kaydet'}
                         </button>
-                        <button onClick={() => handleRemoveRoute(route.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                            <Trash2 size={18} />
-                        </button>
-                    </div>
-                </div>
-                </div>
-            ))
-        ) : (
-            <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
-                <Route size={32} className="mx-auto mb-2 opacity-50" />
-                <p>Henüz kayıtlı rota bulunmuyor.</p>
+                     </div>
+                  </div>
+               </div>
+               <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
+                  <Map size={300} />
+               </div>
             </div>
-        )}
-    </div>
-    </div>
-);
+
+            <div className="space-y-4">
+               <h3 className="font-bold text-slate-800 text-lg ml-1">Aktif Rotalarım</h3>
+               {activeRoutes.length > 0 ? (
+                  activeRoutes.map(route => (
+                     <div key={route.id} className={`bg-white rounded-2xl border p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm transition-all ${editingRouteId === route.id ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50' : 'border-slate-200'}`}>
+                        <div className="flex items-start gap-4">
+                           <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                                 <Route size={24} />
+                           </div>
+                           <div>
+                                 <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-bold text-slate-900">{route.origin}</h4>
+                                    <ArrowRight size={14} className="text-slate-400" />
+                                    <span className="text-slate-600">{route.destinations.join(', ')}</span>
+                                 </div>
+                                 <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
+                                    <span className="flex items-center gap-1"><Calendar size={12} /> {route.date}</span>
+                                    <span className="flex items-center gap-1"><Clock size={12} /> {route.time}</span>
+                                    <span className="flex items-center gap-1"><Truck size={12} /> {route.vehicle}</span>
+                                 </div>
+                           </div>
+                        </div>
+                        <div className="flex items-center gap-3 w-full md:w-auto">
+                           {route.matches > 0 && (
+                                 <div className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-bold flex items-center gap-1">
+                                    <Zap size={12} /> {route.matches} İş Eşleşti
+                                 </div>
+                           )}
+                           <div className="flex ml-auto md:ml-0 gap-2">
+                                 <button onClick={() => handleEditRoute(route)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                    <PenTool size={18} />
+                                 </button>
+                                 <button onClick={() => handleRemoveRoute(route.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                    <Trash2 size={18} />
+                                 </button>
+                           </div>
+                        </div>
+                     </div>
+                  ))
+               ) : (
+                  <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
+                     <Route size={32} className="mx-auto mb-2 opacity-50" />
+                     <p>Henüz kayıtlı rota bulunmuyor.</p>
+                  </div>
+               )}
+            </div>
+         </div>
+      );
+  };
 
   const renderSupportTab = () => (
      <div className="p-4 md:p-6 h-full flex flex-col">
@@ -1069,19 +1196,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
           <div className="flex items-center gap-4 shrink-0">
             <div className={`flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2 rounded-full border transition-colors ${isOnline ? 'bg-green-50 border-green-200' : 'bg-slate-100 border-slate-200'}`}>
               <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`}></span>
-              <span className={`text-xs lg:text-sm font-bold ${isOnline ? 'text-green-700' : 'text-slate-500'}`}>
-                {isOnline ? (
-                  <>
-                    <span className="hidden sm:inline">Müsaitsiniz</span>
-                    <span className="sm:hidden">Aktif</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="hidden sm:inline">Meşgulsünüz</span>
-                    <span className="sm:hidden">Pasif</span>
-                  </>
-                )}
-              </span>
+              <span className={`text-xs lg:text-sm font-bold ${isOnline ? 'text-green-700' : 'text-slate-500'}`}>{isOnline ? <span className="hidden sm:inline">Müsaitsiniz</span> : <span className="hidden sm:inline">Meşgulsünüz</span><span className="sm:hidden">{isOnline ? 'Aktif' : 'Pasif'}</span>}</span>
               <button onClick={() => setIsOnline(!isOnline)} className="ml-1 lg:ml-2 text-xs underline text-slate-500 hover:text-slate-800">Değiştir</button>
             </div>
           </div>
