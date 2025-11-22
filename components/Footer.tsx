@@ -1,0 +1,88 @@
+import React from 'react';
+import { Instagram, Twitter, Facebook, Linkedin, Phone, Mail, MapPin } from 'lucide-react';
+
+const Footer: React.FC = () => {
+  return (
+    <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white pt-16 pb-8">
+      <div className="container mx-auto px-6 md:px-12 lg:px-24 xl:px-32">
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+          
+          {/* Brand Column */}
+          <div>
+            <div className="mb-6">
+              <img 
+                src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-logo-cutter-beyaz.png" 
+                alt="Yolmov Logo" 
+                className="h-10 w-auto object-contain"
+              />
+            </div>
+            <p className="text-gray-400 text-sm leading-relaxed mb-6">
+              Yolda kaldığınız her an yanınızdayız. Modern, hızlı ve güvenilir yol yardım platformu.
+            </p>
+            <div className="flex space-x-4">
+              {[Instagram, Twitter, Facebook, Linkedin].map((Icon, i) => (
+                <a key={i} href="#" className="w-8 h-8 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:bg-brand-orange hover:text-white transition-all">
+                  <Icon size={16} />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="text-lg font-bold mb-6 text-white/90">Kurumsal</h4>
+            <ul className="space-y-3 text-sm text-gray-400">
+              {['Hakkımızda', 'Nasıl Çalışır', 'Kariyer', 'Blog', 'İletişim'].map(link => (
+                <li key={link}><a href="#" className="hover:text-brand-orange transition-colors">{link}</a></li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Services */}
+          <div>
+            <h4 className="text-lg font-bold mb-6 text-white/90">Hizmetler</h4>
+            <ul className="space-y-3 text-sm text-gray-400">
+              {['Çekici Hizmeti', 'Akü Takviyesi', 'Lastik Değişimi', 'Yakıt Desteği', 'Oto Kurtarma'].map(link => (
+                <li key={link}><a href="#" className="hover:text-brand-orange transition-colors">{link}</a></li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h4 className="text-lg font-bold mb-6 text-white/90">Bize Ulaşın</h4>
+            <ul className="space-y-4 text-sm text-gray-400">
+              <li className="flex items-start gap-3">
+                <Phone className="w-5 h-5 text-brand-orange shrink-0" />
+                <span>0850 123 45 67</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Mail className="w-5 h-5 text-brand-orange shrink-0" />
+                <span>destek@yolmov.com</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-brand-orange shrink-0" />
+                <span>Maslak Mah. Büyükdere Cad. No:123 Sarıyer / İstanbul</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+        <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-gray-500 text-xs text-center md:text-left">
+            &copy; {new Date().getFullYear()} YOLMOV Teknoloji A.Ş. Tüm hakları saklıdır.
+          </p>
+          <div className="flex space-x-6 text-xs text-gray-500">
+            <a href="#" className="hover:text-white">Gizlilik Politikası</a>
+            <a href="#" className="hover:text-white">Kullanım Koşulları</a>
+          </div>
+        </div>
+
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;

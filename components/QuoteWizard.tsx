@@ -1,0 +1,529 @@
+
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Car, 
+  Truck, 
+  Bus, 
+  Check, 
+  ChevronRight, 
+  ChevronLeft, 
+  MapPin, 
+  Calendar, 
+  AlertTriangle, 
+  User, 
+  Phone, 
+  ShieldCheck,
+  Info,
+  CheckCircle2,
+  Navigation
+} from 'lucide-react';
+import { CITIES_WITH_DISTRICTS } from '../constants';
+
+const STEPS = [
+  { id: 1, title: 'Araç Bilgileri' },
+  { id: 2, title: 'Konum Bilgisi' },
+  { id: 3, title: 'Ek Bilgiler' },
+  { id: 4, title: 'Özet & İletişim' },
+  { id: 5, title: 'Onay' }
+];
+
+const VEHICLE_TYPES = [
+  { id: 'sedan', label: 'Otomobil', icon: Car },
+  { id: 'suv', label: 'Arazi, SUV', icon: Car },
+  { id: 'minibus', label: 'Minibüs', icon: Bus },
+  { id: 'truck', label: 'Kamyon', icon: Truck },
+];
+
+interface QuoteWizardProps {
+  onHome?: () => void;
+}
+
+const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome }) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  
+  // Form Data State
+  const [formData, setFormData] = useState({
+    vehicleType: '',
+    make: '',
+    model: '',
+    year: '',
+    serviceType: 'towing', // towing (Taşınacak) or rescue (Kurtarılacak)
+    fromLocation: '',
+    toLocation: '',
+    condition: 'broken', // running (Çalışır) or broken (Arızalı/Kazalı)
+    timing: 'now', // now, week, later
+    note: '',
+    firstName: '',
+    lastName: '',
+    phone: ''
+  });
+
+  const validateStep = (step: number) => {
+    const newErrors: Record<string, boolean> = {};
+    let isValid = true;
+
+    if (step === 1) {
+      if (!formData.vehicleType) newErrors.vehicleType = true;
+      if (!formData.make) newErrors.make = true;
+      if (!formData.model) newErrors.model = true;
+      if (!formData.year) newErrors.year = true;
+    }
+
+    if (step === 2) {
+      if (!formData.fromLocation) newErrors.fromLocation = true;
+      // If towing, destination is required
+      if (formData.serviceType === 'towing' && !formData.toLocation) newErrors.toLocation = true;
+    }
+
+    if (step === 4) {
+      if (!formData.firstName) newErrors.firstName = true;
+      if (!formData.lastName) newErrors.lastName = true;
+      if (!formData.phone) newErrors.phone = true;
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      isValid = false;
+    } else {
+      setErrors({});
+    }
+
+    return isValid;
+  };
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      if (currentStep === 4) {
+        // Simulate submission
+        setIsSubmitting(true);
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setCurrentStep(5);
+        }, 1500);
+      } else {
+        setCurrentStep(currentStep + 1);
+      }
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const updateData = (key: string, value: any) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+    // Clear error when user types
+    if (errors[key]) {
+      setErrors(prev => ({ ...prev, [key]: false }));
+    }
+  };
+
+  // Render Functions for Each Step
+  const renderStep1 = () => (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Araç Tipi</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {VEHICLE_TYPES.map((type) => (
+            <div 
+              key={type.id}
+              onClick={() => updateData('vehicleType', type.id)}
+              className={`cursor-pointer rounded-xl border-2 p-4 flex flex-col items-center gap-3 transition-all relative ${
+                formData.vehicleType === type.id 
+                  ? 'border-brand-orange bg-orange-50 text-brand-orange' 
+                  : errors.vehicleType 
+                    ? 'border-red-300 bg-red-50' 
+                    : 'border-gray-100 hover:border-gray-200 bg-white text-gray-500'
+              }`}
+            >
+              <type.icon size={32} strokeWidth={1.5} />
+              <span className="text-xs font-bold text-center">{type.label}</span>
+              {formData.vehicleType === type.id && (
+                <div className="absolute top-2 right-2 text-brand-orange">
+                  <CheckCircle2 size={16} />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {errors.vehicleType && <p className="text-red-500 text-xs mt-1">Lütfen araç tipi seçiniz.</p>}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Araç Markası</label>
+          <select 
+            className={`w-full p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.make ? 'border-red-300' : 'border-gray-200'}`}
+            value={formData.make}
+            onChange={(e) => updateData('make', e.target.value)}
+          >
+            <option value="">Seçiniz</option>
+            <option value="bmw">BMW</option>
+            <option value="mercedes">Mercedes</option>
+            <option value="audi">Audi</option>
+            <option value="ford">Ford</option>
+            <option value="toyota">Toyota</option>
+            <option value="honda">Honda</option>
+            <option value="volkswagen">Volkswagen</option>
+            <option value="renault">Renault</option>
+            <option value="fiat">Fiat</option>
+          </select>
+          {errors.make && <p className="text-red-500 text-xs mt-1">Marka seçimi zorunludur.</p>}
+        </div>
+        <div>
+           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Araç Modeli</label>
+           <input 
+             type="text" 
+             placeholder="Örn: 320i, Corolla"
+             className={`w-full p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.model ? 'border-red-300' : 'border-gray-200'}`}
+             value={formData.model}
+             onChange={(e) => updateData('model', e.target.value)}
+           />
+           {errors.model && <p className="text-red-500 text-xs mt-1">Model bilgisi zorunludur.</p>}
+        </div>
+        <div>
+           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Üretim Yılı</label>
+           <select 
+             className={`w-full p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.year ? 'border-red-300' : 'border-gray-200'}`}
+             value={formData.year}
+             onChange={(e) => updateData('year', e.target.value)}
+           >
+             <option value="">Seçiniz</option>
+             {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(year => (
+               <option key={year} value={year}>{year}</option>
+             ))}
+           </select>
+           {errors.year && <p className="text-red-500 text-xs mt-1">Yıl seçimi zorunludur.</p>}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="space-y-6">
+      <div>
+         <h3 className="text-lg font-bold text-gray-900 mb-4">Hizmet Tercihi</h3>
+         <div className="flex bg-gray-100 p-1 rounded-xl w-full max-w-md mx-auto md:mx-0">
+            <button
+               onClick={() => updateData('serviceType', 'towing')}
+               className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+                  formData.serviceType === 'towing' ? 'bg-white shadow-sm text-brand-orange' : 'text-gray-500'
+               }`}
+            >
+               Taşınacak (Çekici)
+            </button>
+            <button
+               onClick={() => updateData('serviceType', 'rescue')}
+               className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+                  formData.serviceType === 'rescue' ? 'bg-white shadow-sm text-brand-orange' : 'text-gray-500'
+               }`}
+            >
+               Kurtarılacak
+            </button>
+         </div>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nereden Alınacak?</label>
+           <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <select 
+                className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none appearance-none ${errors.fromLocation ? 'border-red-300' : 'border-gray-200'}`}
+                value={formData.fromLocation}
+                onChange={(e) => updateData('fromLocation', e.target.value)}
+              >
+                <option value="">İl Seçiniz</option>
+                {Object.keys(CITIES_WITH_DISTRICTS).map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+           </div>
+           {errors.fromLocation && <p className="text-red-500 text-xs mt-1">Konum seçimi zorunludur.</p>}
+        </div>
+
+        {formData.serviceType === 'towing' && (
+           <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+           >
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nereye Gidecek?</label>
+              <div className="relative">
+                 <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                 <select 
+                   className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none appearance-none ${errors.toLocation ? 'border-red-300' : 'border-gray-200'}`}
+                   value={formData.toLocation}
+                   onChange={(e) => updateData('toLocation', e.target.value)}
+                 >
+                   <option value="">İl Seçiniz</option>
+                   {Object.keys(CITIES_WITH_DISTRICTS).map(city => (
+                     <option key={city} value={city}>{city}</option>
+                   ))}
+                 </select>
+              </div>
+              {errors.toLocation && <p className="text-red-500 text-xs mt-1">Varış noktası seçimi zorunludur.</p>}
+           </motion.div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderStep3 = () => (
+    <div className="space-y-6">
+      <div>
+         <h3 className="text-lg font-bold text-gray-900 mb-4">Araç Durumu</h3>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className={`border rounded-xl p-4 flex items-center gap-3 cursor-pointer transition-all ${formData.condition === 'running' ? 'border-brand-orange bg-orange-50 ring-1 ring-brand-orange' : 'border-gray-200 hover:border-gray-300'}`}>
+               <input 
+                  type="radio" 
+                  name="condition" 
+                  className="text-brand-orange focus:ring-brand-orange w-5 h-5"
+                  checked={formData.condition === 'running'}
+                  onChange={() => updateData('condition', 'running')} 
+               />
+               <span className="font-medium text-gray-700">Yürür / Çalışır Durumda</span>
+            </label>
+            <label className={`border rounded-xl p-4 flex items-center gap-3 cursor-pointer transition-all ${formData.condition === 'broken' ? 'border-brand-orange bg-orange-50 ring-1 ring-brand-orange' : 'border-gray-200 hover:border-gray-300'}`}>
+               <input 
+                  type="radio" 
+                  name="condition" 
+                  className="text-brand-orange focus:ring-brand-orange w-5 h-5"
+                  checked={formData.condition === 'broken'}
+                  onChange={() => updateData('condition', 'broken')} 
+               />
+               <span className="font-medium text-gray-700">Arızalı / Kazalı</span>
+            </label>
+         </div>
+      </div>
+
+      <div>
+         <h3 className="text-lg font-bold text-gray-900 mb-4">Ne Zaman?</h3>
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {['Hemen (Acil)', 'Bu Hafta', 'İleri Tarihli'].map((t, i) => {
+               const val = i === 0 ? 'now' : i === 1 ? 'week' : 'later';
+               return (
+                  <button
+                     key={val}
+                     onClick={() => updateData('timing', val)}
+                     className={`py-3 px-4 rounded-xl text-sm font-bold border transition-all ${
+                        formData.timing === val 
+                           ? 'bg-brand-orange text-white border-brand-orange shadow-md' 
+                           : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                     }`}
+                  >
+                     {t}
+                  </button>
+               );
+            })}
+         </div>
+      </div>
+
+      <div>
+         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ek Açıklama (Opsiyonel)</label>
+         <textarea 
+            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none min-h-[100px]"
+            placeholder="Örn: Araç şarampole yuvarlandı, lastik patlak, anahtar yok vb."
+            value={formData.note}
+            onChange={(e) => updateData('note', e.target.value)}
+         ></textarea>
+      </div>
+    </div>
+  );
+
+  const renderStep4 = () => (
+    <div className="space-y-6">
+       <div className="bg-orange-50 rounded-xl p-6 border border-orange-100">
+          <h3 className="text-brand-orange font-bold mb-4 flex items-center gap-2">
+             <Info size={18} /> Talep Özeti
+          </h3>
+          <div className="space-y-3 text-sm text-gray-700">
+             <div className="flex justify-between border-b border-orange-100 pb-2">
+                <span className="text-gray-500">Araç:</span>
+                <span className="font-bold">{formData.make} {formData.model} ({formData.year})</span>
+             </div>
+             <div className="flex justify-between border-b border-orange-100 pb-2">
+                <span className="text-gray-500">Hizmet:</span>
+                <span className="font-bold">{formData.serviceType === 'towing' ? 'Çekici Hizmeti' : 'Kurtarma Hizmeti'}</span>
+             </div>
+             <div className="flex justify-between border-b border-orange-100 pb-2">
+                <span className="text-gray-500">Güzergah:</span>
+                <span className="font-bold text-right">
+                   {formData.fromLocation} 
+                   {formData.toLocation && <span className="text-brand-orange mx-1">➔</span>} 
+                   {formData.toLocation}
+                </span>
+             </div>
+             <div className="flex justify-between">
+                <span className="text-gray-500">Zamanlama:</span>
+                <span className="font-bold">
+                   {formData.timing === 'now' ? 'Hemen (Acil)' : formData.timing === 'week' ? 'Bu Hafta' : 'İleri Tarihli'}
+                </span>
+             </div>
+          </div>
+       </div>
+
+       <div>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">İletişim Bilgileri</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ad</label>
+                <div className="relative">
+                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                   <input 
+                     type="text" 
+                     className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.firstName ? 'border-red-300' : 'border-gray-200'}`}
+                     placeholder="Adınız"
+                     value={formData.firstName}
+                     onChange={(e) => updateData('firstName', e.target.value)}
+                   />
+                </div>
+                {errors.firstName && <p className="text-red-500 text-xs mt-1">Ad zorunludur.</p>}
+             </div>
+             <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Soyad</label>
+                <div className="relative">
+                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                   <input 
+                     type="text" 
+                     className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.lastName ? 'border-red-300' : 'border-gray-200'}`}
+                     placeholder="Soyadınız"
+                     value={formData.lastName}
+                     onChange={(e) => updateData('lastName', e.target.value)}
+                   />
+                </div>
+                {errors.lastName && <p className="text-red-500 text-xs mt-1">Soyad zorunludur.</p>}
+             </div>
+             <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Telefon</label>
+                <div className="relative">
+                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                   <input 
+                     type="tel" 
+                     className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.phone ? 'border-red-300' : 'border-gray-200'}`}
+                     placeholder="05XX XXX XX XX"
+                     value={formData.phone}
+                     onChange={(e) => updateData('phone', e.target.value)}
+                   />
+                </div>
+                {errors.phone && <p className="text-red-500 text-xs mt-1">İletişim numarası zorunludur.</p>}
+             </div>
+          </div>
+          <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+             <ShieldCheck size={14} className="text-green-600" />
+             <span>Kişisel verileriniz güvendedir ve sadece teklif verecek firmalarla paylaşılır.</span>
+          </div>
+       </div>
+    </div>
+  );
+
+  const renderStep5 = () => (
+    <div className="text-center py-12">
+      <motion.div 
+         initial={{ scale: 0 }}
+         animate={{ scale: 1 }}
+         className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600"
+      >
+         <CheckCircle2 size={48} />
+      </motion.div>
+      <h2 className="text-3xl font-bold text-gray-900 mb-4">Talebiniz Alındı!</h2>
+      <p className="text-gray-500 max-w-md mx-auto mb-8">
+         Sayın <strong>{formData.firstName} {formData.lastName}</strong>, yol yardım talebiniz başarıyla oluşturuldu. Bölgedeki en uygun çekici ve kurtarma ekipleri size <strong>5 dakika içinde</strong> {formData.phone} numarasından dönüş yapacaktır.
+      </p>
+      <button 
+         onClick={() => onHome ? onHome() : window.location.href = '/'}
+         className="px-8 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-colors"
+      >
+         Ana Sayfaya Dön
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="w-full bg-white rounded-3xl shadow-2xl shadow-gray-200 border border-gray-100 overflow-hidden">
+      {/* Header / Progress Bar */}
+      <div className="bg-gray-50 border-b border-gray-200 p-6">
+         {currentStep === 5 ? (
+            <div className="text-center font-bold text-green-600 text-xl">İşlem Başarılı</div>
+         ) : (
+            <div className="flex items-center justify-between relative">
+               {/* Progress Line */}
+               <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10"></div>
+               <div 
+                  className="absolute top-1/2 left-0 h-1 bg-brand-orange -z-10 transition-all duration-500"
+                  style={{ width: `${((currentStep - 1) / (STEPS.length - 2)) * 100}%` }}
+               ></div>
+
+               {STEPS.slice(0, 4).map((step) => (
+                  <div key={step.id} className="flex flex-col items-center gap-2 bg-gray-50 px-2">
+                     <div 
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                           step.id <= currentStep 
+                              ? 'bg-brand-orange text-white shadow-lg shadow-orange-200' 
+                              : 'bg-gray-200 text-gray-500'
+                        }`}
+                     >
+                        {step.id < currentStep ? <Check size={14} /> : step.id}
+                     </div>
+                     <span className={`hidden md:block text-[10px] font-bold uppercase tracking-wider ${step.id <= currentStep ? 'text-brand-orange' : 'text-gray-400'}`}>
+                        {step.title}
+                     </span>
+                  </div>
+               ))}
+            </div>
+         )}
+      </div>
+
+      {/* Content Area */}
+      <div className="p-6 md:p-10 min-h-[400px]">
+         <AnimatePresence mode="wait">
+            <motion.div
+               key={currentStep}
+               initial={{ opacity: 0, x: 20 }}
+               animate={{ opacity: 1, x: 0 }}
+               exit={{ opacity: 0, x: -20 }}
+               transition={{ duration: 0.3 }}
+            >
+               {currentStep === 1 && renderStep1()}
+               {currentStep === 2 && renderStep2()}
+               {currentStep === 3 && renderStep3()}
+               {currentStep === 4 && renderStep4()}
+               {currentStep === 5 && renderStep5()}
+            </motion.div>
+         </AnimatePresence>
+      </div>
+
+      {/* Footer Actions */}
+      {currentStep < 5 && (
+         <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
+            <button 
+               onClick={handleBack}
+               disabled={currentStep === 1}
+               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-colors ${
+                  currentStep === 1 
+                     ? 'text-gray-300 cursor-not-allowed' 
+                     : 'text-gray-600 hover:bg-gray-200 bg-white border border-gray-200'
+               }`}
+            >
+               <ChevronLeft size={18} /> Geri
+            </button>
+
+            <button 
+               onClick={handleNext}
+               className="flex items-center gap-2 px-8 py-3 bg-brand-orange text-white rounded-xl font-bold shadow-lg shadow-orange-200 hover:bg-brand-lightOrange hover:-translate-y-0.5 transition-all disabled:opacity-70"
+               disabled={isSubmitting}
+            >
+               {isSubmitting ? 'Gönderiliyor...' : currentStep === 4 ? 'Teklif Al' : 'Devam Et'}
+               {!isSubmitting && <ChevronRight size={18} />}
+            </button>
+         </div>
+      )}
+    </div>
+  );
+};
+
+export default QuoteWizard;
