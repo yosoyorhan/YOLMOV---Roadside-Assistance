@@ -1069,7 +1069,19 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
           <div className="flex items-center gap-4 shrink-0">
             <div className={`flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2 rounded-full border transition-colors ${isOnline ? 'bg-green-50 border-green-200' : 'bg-slate-100 border-slate-200'}`}>
               <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`}></span>
-              <span className={`text-xs lg:text-sm font-bold ${isOnline ? 'text-green-700' : 'text-slate-500'}`}>{isOnline ? <span className="hidden sm:inline">Müsaitsiniz</span> : <span className="hidden sm:inline">Meşgulsünüz</span><span className="sm:hidden">{isOnline ? 'Aktif' : 'Pasif'}</span>}</span>
+              <span className={`text-xs lg:text-sm font-bold ${isOnline ? 'text-green-700' : 'text-slate-500'}`}>
+                {isOnline ? (
+                  <>
+                    <span className="hidden sm:inline">Müsaitsiniz</span>
+                    <span className="sm:hidden">Aktif</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Meşgulsünüz</span>
+                    <span className="sm:hidden">Pasif</span>
+                  </>
+                )}
+              </span>
               <button onClick={() => setIsOnline(!isOnline)} className="ml-1 lg:ml-2 text-xs underline text-slate-500 hover:text-slate-800">Değiştir</button>
             </div>
           </div>
