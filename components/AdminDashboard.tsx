@@ -116,14 +116,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       {/* Sidebar */}
       <div className="w-64 bg-slate-900 text-white flex flex-col">
         <div className="p-6 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center">
-              <Shield size={24} />
-            </div>
-            <div>
-              <h1 className="font-bold text-lg">YOLMOV</h1>
-              <p className="text-xs text-slate-400">Admin Panel</p>
-            </div>
+          <div className="cursor-pointer" onClick={() => setActiveTab('overview')}>
+            <img 
+              src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-logo-cutter-beyaz.png" 
+              alt="YOLMOV Admin" 
+              className="h-10 w-auto object-contain mb-2"
+            />
+            <p className="text-xs text-slate-400 text-center">Admin Panel</p>
           </div>
         </div>
 
