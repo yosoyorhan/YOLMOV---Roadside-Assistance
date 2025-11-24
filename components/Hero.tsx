@@ -282,14 +282,14 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="mb-10"
+            className="mb-6 md:mb-10"
           >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-extrabold text-white leading-[1.15] mb-6 drop-shadow-2xl tracking-tight">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-display font-extrabold text-white leading-[1.15] mb-3 md:mb-6 drop-shadow-2xl tracking-tight">
               Yolda Kaldığınızda <br className="hidden md:block" />
-              <span className="text-brand-orange inline-block mt-2">Yanınızdayız.</span>
+              <span className="text-brand-orange inline-block mt-1 md:mt-2">Yanınızdayız.</span>
             </h1>
             
-            <h3 className="text-lg md:text-xl text-gray-100 max-w-2xl mx-auto font-light leading-relaxed drop-shadow-lg">
+            <h3 className="text-sm md:text-xl text-gray-100 max-w-2xl mx-auto font-light leading-relaxed drop-shadow-lg">
               Çekici, akü takviyesi, yakıt, lastik ve yol yardım hizmetlerine tek tıkla, güvenle ulaşın.
             </h3>
           </motion.div>
@@ -518,24 +518,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
               </div>
 
             </div>
-            
-            {/* Quick Tags Below Search - Added relative z-10 to sit below search bar */}
-            <div className={`mt-6 flex flex-wrap gap-3 justify-center items-center animate-fade-in-up relative z-10 transition-opacity duration-300 ${isSearching ? 'opacity-0' : 'opacity-100'}`}>
-                <span className="text-[11px] text-white/80 uppercase font-bold tracking-widest mr-1 drop-shadow-md">Popüler:</span>
-                {['Çekici', 'Akü', 'Lastik', 'Yakıt'].map(tag => (
-                    <button 
-                      key={tag} 
-                      onClick={() => {
-                         if (isSearching) return;
-                         const s = SERVICES.find(ser => ser.title.includes(tag));
-                         if(s) setSelectedServiceId(s.id);
-                      }}
-                      className="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-lg text-xs font-semibold hover:bg-white hover:text-brand-orange transition-all shadow-sm"
-                    >
-                        {tag}
-                    </button>
-                ))}
-            </div>
+
           </motion.div>
 
         </div>
