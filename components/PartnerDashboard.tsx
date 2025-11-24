@@ -12,8 +12,9 @@ import {
   Truck, Headphones, Plus, PenTool, Wrench, LifeBuoy, Route, MoreHorizontal,
   Grid, LayoutList, Zap, Send, Star, ThumbsUp, ThumbsDown
 } from 'lucide-react';
-import { JobRequest } from '../types';
+import { JobRequest, Request } from '../types';
 import { MOCK_PARTNER_REQUESTS, CITIES_WITH_DISTRICTS } from '../constants';
+import { createOffer, getRequestsByCustomer } from '../services/mockApi';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PartnerDashboardProps {
@@ -88,6 +89,14 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [offeringJobId, setOfferingJobId] = useState<string | null>(null);
   const [offerError, setOfferError] = useState<string | null>(null);
 
+   // Customer Requests (B2C) offer flow demo
+   const DEMO_CUSTOMER_ID = 'demo-customer';
+   const [customerRequests, setCustomerRequests] = useState<Request[]>([]);
+   const [selectedRequestForOffer, setSelectedRequestForOffer] = useState<Request | null>(null);
+   const [offerPrice, setOfferPrice] = useState('');
+   const [offerEta, setOfferEta] = useState('');
+   const [offerMessage, setOfferMessage] = useState('');
+
   // Active Job Workflow State
   const [jobStage, setJobStage] = useState<0 | 1 | 2 | 3 | 4>(0); 
   const [hasStartProof, setHasStartProof] = useState(false);
@@ -159,6 +168,12 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+   // Load demo customer open requests
+   useEffect(() => {
+      const reqs = getRequestsByCustomer(DEMO_CUSTOMER_ID).filter(r => r.status === 'open');
+      setCustomerRequests(reqs);
+   }, []);
+
   // Filter Logic
   const filteredRequests = requests.filter(req => {
     if (filterMode === 'urgent') return req.urgency === 'high';
@@ -184,6 +199,17 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     setQuotePrice('');
     setQuoteNote('');
   };
+
+   const handleOpenCustomerOfferModal = (req: Request) => {
+      if (credits <= 0) {
+         alert('Yetersiz bakiye! Teklif vermek için kredi yükleyiniz.');
+         return;
+      }
+      setSelectedRequestForOffer(req);
+      setOfferPrice('');
+      setOfferEta('');
+      setOfferMessage('');
+   };
 
   // Step 2: Submit Quote -> Start Simulation
   const handleSubmitQuote = () => {
@@ -216,6 +242,21 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       }
     }, 2500);
   };
+
+   const handleSubmitCustomerOffer = () => {
+      if (!selectedRequestForOffer || !offerPrice) return;
+      // Persist offer to localStorage so B2C panel can see it
+      createOffer('PARTNER-DEMO', selectedRequestForOffer.id, {
+         price: parseFloat(offerPrice),
+         etaMinutes: offerEta ? parseInt(offerEta) : 30,
+         message: offerMessage
+      });
+      alert('Teklif gönderildi. Müşteri yanıtını bekleyebilirsiniz.');
+      setSelectedRequestForOffer(null);
+      setOfferPrice('');
+      setOfferEta('');
+      setOfferMessage('');
+   };
 
   const handleStartOperation = (job: JobRequest) => {
     setActiveJob(job);
@@ -482,6 +523,81 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       </div>
     );
   };
+
+   const renderCustomerOfferModal = () => {
+      if (!selectedRequestForOffer) return null;
+      return (
+         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
+            <motion.div
+               initial={{ opacity: 0, scale: 0.95 }}
+               animate={{ opacity: 1, scale: 1 }}
+               exit={{ opacity: 0, scale: 0.95 }}
+               className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden p-6"
+            >
+               <div className="flex justify-between items-center mb-6">
+                  <div>
+                     <h2 className="text-xl font-bold text-slate-800">Müşteri Talebine Teklif Ver</h2>
+                     <p className="text-xs text-slate-500">#{selectedRequestForOffer.id} - {selectedRequestForOffer.serviceType}</p>
+                  </div>
+                  <button onClick={() => setSelectedRequestForOffer(null)} className="p-2 bg-slate-50 rounded-full text-slate-400 hover:text-slate-600"><X size={20} /></button>
+               </div>
+
+               <div className="space-y-4">
+                  <div>
+                     <label className="block text-sm font-bold text-slate-700 mb-2">Teklif Tutarı (₺)</label>
+                     <div className="relative">
+                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <input
+                           type="number"
+                           autoFocus
+                           placeholder="0.00"
+                           className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xl font-bold text-slate-900 focus:border-blue-500 focus:ring-0 outline-none transition-colors"
+                           value={offerPrice}
+                           onChange={(e) => setOfferPrice(e.target.value)}
+                        />
+                     </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                     <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">ETA (dk)</label>
+                        <input
+                           type="number"
+                           placeholder="30"
+                           className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-blue-500 outline-none"
+                           value={offerEta}
+                           onChange={(e) => setOfferEta(e.target.value)}
+                        />
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Hizmet Türü</label>
+                        <div className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700">{selectedRequestForOffer.serviceType}</div>
+                     </div>
+                  </div>
+                  <div>
+                     <label className="block text-sm font-bold text-slate-700 mb-2">Mesaj (Opsiyonel)</label>
+                     <textarea
+                        placeholder="Örn: 20 dk içinde araç başında olurum."
+                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:ring-0 outline-none resize-none h-24"
+                        value={offerMessage}
+                        onChange={(e) => setOfferMessage(e.target.value)}
+                     ></textarea>
+                  </div>
+               </div>
+
+               <div className="mt-8 flex gap-3">
+                  <button onClick={() => setSelectedRequestForOffer(null)} className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all">İptal</button>
+                  <button
+                     onClick={handleSubmitCustomerOffer}
+                     disabled={!offerPrice}
+                     className="flex-[2] py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                     Teklifi Gönder
+                  </button>
+               </div>
+            </motion.div>
+         </div>
+      );
+   };
 
   const renderHistoryDetailModal = () => {
     if (!selectedHistoryItem) return null;
@@ -1247,6 +1363,30 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                  </div>
                </div>
 
+                      {/* Demo Customer Requests Section */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-4">
+                         <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-sm font-bold text-slate-700">Açık Müşteri Talepleri (Demo)</h3>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">B2C</span>
+                         </div>
+                         {customerRequests.length ? (
+                            <div className="space-y-3">
+                               {customerRequests.map(r => (
+                                  <div key={r.id} className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-3">
+                                     <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{r.serviceType}</span>
+                                        <span className="text-sm font-bold text-slate-800">#{r.id}</span>
+                                        <span className="text-[11px] text-slate-500 truncate max-w-[180px]">{r.description}</span>
+                                     </div>
+                                     <button onClick={() => handleOpenCustomerOfferModal(r)} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1"><Send size={14} /> Teklif Ver</button>
+                                  </div>
+                               ))}
+                            </div>
+                         ) : (
+                            <p className="text-xs text-slate-400">Açık talep yok.</p>
+                         )}
+                      </div>
+
                {filteredRequests.length > 0 ? (
                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                    {filteredRequests.map((req) => {
@@ -1425,6 +1565,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       <AnimatePresence>{selectedHistoryItem && renderHistoryDetailModal()}</AnimatePresence>
       <AnimatePresence>{showAddCreditModal && renderAddCreditModal()}</AnimatePresence>
       <AnimatePresence>{selectedJobForQuote && renderQuoteModal()}</AnimatePresence>
+      <AnimatePresence>{selectedRequestForOffer && renderCustomerOfferModal()}</AnimatePresence>
       <AnimatePresence>{showRatingModal && renderRatingModal()}</AnimatePresence>
     </div>
   );

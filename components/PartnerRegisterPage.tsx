@@ -27,11 +27,14 @@ const PartnerRegisterPage: React.FC = () => {
     firstName: '',
     lastName: '',
     companyName: '',
+    taxNumber: '',
     sector: '',
     city: '',
     district: '',
     phone: '',
     email: '',
+    vehicleCount: '',
+    vehicleTypes: '',
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -137,6 +140,16 @@ const PartnerRegisterPage: React.FC = () => {
                               onChange={(e) => handleInputChange('companyName', e.target.value)}
                            />
                         </div>
+                        <div className="md:col-span-2 bg-slate-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-brand-orange/50 focus-within:bg-white transition-all flex items-center gap-3">
+                           <ShieldCheck size={18} className="text-slate-400" />
+                           <input 
+                              type="text" 
+                              placeholder="Vergi Numarası / T.C. Kimlik No" 
+                              className="bg-transparent w-full outline-none text-sm font-medium text-slate-800 placeholder-slate-400"
+                              value={formData.taxNumber}
+                              onChange={(e) => handleInputChange('taxNumber', e.target.value)}
+                           />
+                        </div>
                      </div>
                   </div>
 
@@ -186,6 +199,44 @@ const PartnerRegisterPage: React.FC = () => {
                               <option value="">İlçe Seçiniz</option>
                               {formData.city && CITIES_WITH_DISTRICTS[formData.city].map(d => <option key={d} value={d}>{d}</option>)}
                            </select>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* 4. Araç & Ekipman Bilgileri */}
+                  <div className="space-y-4">
+                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Araç & Ekipman</label>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-slate-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-brand-orange/50 focus-within:bg-white transition-all flex items-center gap-3">
+                           <Truck size={18} className="text-slate-400" />
+                           <input 
+                              type="number" 
+                              placeholder="Araç Sayısı" 
+                              className="bg-transparent w-full outline-none text-sm font-medium text-slate-800 placeholder-slate-400"
+                              value={formData.vehicleCount}
+                              onChange={(e) => handleInputChange('vehicleCount', e.target.value)}
+                           />
+                        </div>
+                        <div className="bg-slate-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-brand-orange/50 focus-within:bg-white transition-all flex items-center gap-3">
+                           <Wrench size={18} className="text-slate-400" />
+                           <input 
+                              type="text" 
+                              placeholder="Araç Tipleri (örn: Çekici, Tamirat)" 
+                              className="bg-transparent w-full outline-none text-sm font-medium text-slate-800 placeholder-slate-400"
+                              value={formData.vehicleTypes}
+                              onChange={(e) => handleInputChange('vehicleTypes', e.target.value)}
+                           />
+                        </div>
+                     </div>
+                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <p className="text-xs text-blue-700 font-medium mb-2">📄 Belge Yükleme (Opsiyonel)</p>
+                        <div className="flex flex-col gap-2">
+                           <button className="px-4 py-2 bg-white border border-blue-300 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-50 transition-all">
+                              Ticari Sicil Gazetesi Yükle
+                           </button>
+                           <button className="px-4 py-2 bg-white border border-blue-300 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-50 transition-all">
+                              Ruhsat Fotokopisi Yükle
+                           </button>
                         </div>
                      </div>
                   </div>

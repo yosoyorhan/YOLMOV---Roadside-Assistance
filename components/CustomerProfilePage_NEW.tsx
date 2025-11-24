@@ -83,7 +83,6 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
       alert('Şifre en az 6 karakter olmalıdır.');
       return;
     }
-    // Mock success
     alert('Şifreniz başarıyla değiştirildi!');
     setShowChangePassword(false);
     setPasswordForm({ current: '', new: '', confirm: '' });
@@ -222,15 +221,7 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
             {/* TAB CONTENT: ORDERS */}
             {activeTab === 'orders' && (
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-display font-bold text-gray-900">Taleplerim</h3>
-                <button
-                  onClick={() => window.dispatchEvent(new CustomEvent('yolmov:navigate', { detail: { page: 'customer-offers' } }))}
-                  className="px-4 py-2 rounded-xl bg-brand-orange text-white text-sm font-bold hover:bg-brand-lightOrange transition-colors"
-                >
-                  Teklifleri Gör
-                </button>
-              </div>
+              <h3 className="text-2xl font-display font-bold text-gray-900 mb-6">Taleplerim</h3>
               <div className="space-y-4">
                 {MOCK_ORDERS.map(order => (
                   <div key={order.id} className="p-5 rounded-xl border border-gray-100 hover:border-brand-orange hover:shadow-md transition-all cursor-pointer group" onClick={() => setSelectedOrder(order)}>
@@ -456,104 +447,149 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
               </div>
             </div>
             )}
-            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-display font-bold text-gray-900">Profil Bilgileri</h3>
-                {!editing ? (
-                  <button onClick={() => setEditing(true)} className="px-4 py-2 rounded-xl bg-brand-orange text-white text-sm font-bold flex items-center gap-1 hover:bg-brand-lightOrange transition-colors"><Edit3 size={16}/> Düzenle</button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button onClick={handleSave} className="px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-bold flex items-center gap-1 hover:bg-green-700"><Check size={16}/> Kaydet</button>
-                    <button onClick={() => { setForm(customer); setEditing(false); }} className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 text-sm font-bold flex items-center gap-1 hover:bg-gray-200"><X size={16}/> İptal</button>
-                  </div>
-                )}
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Ad</label>
-                  <div className="relative">
-                    <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input disabled={!editing} value={form.firstName} onChange={e => handleChange('firstName', e.target.value)} className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none text-sm font-medium" />
+            {/* MODAL: ORDER DETAIL */}
+            {selectedOrder && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)}>
+                <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">{selectedOrder.service}</h3>
+                      <p className="text-sm text-gray-500 mt-1">#{selectedOrder.id}</p>
+                    </div>
+                    <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Soyad</label>
-                  <div className="relative">
-                    <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input disabled={!editing} value={form.lastName} onChange={e => handleChange('lastName', e.target.value)} className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none text-sm font-medium" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Telefon</label>
-                  <div className="relative">
-                    <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input disabled={!editing} value={form.phone} onChange={e => handleChange('phone', e.target.value)} className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none text-sm font-medium" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">E-Posta (Opsiyonel)</label>
-                  <div className="relative">
-                    <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input disabled={!editing} value={form.email || ''} onChange={e => handleChange('email', e.target.value)} className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none text-sm font-medium" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Şehir</label>
-                  <div className="relative">
-                    <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <select disabled={!editing} value={form.city || ''} onChange={e => handleChange('city', e.target.value)} className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none text-sm font-medium">
-                      <option value="">Seçiniz</option>
-                      {Object.keys(CITIES_WITH_DISTRICTS).map(city => <option key={city} value={city}>{city}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">İlçe</label>
-                  <div className="relative">
-                    <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <select disabled={!editing || !form.city} value={form.district || ''} onChange={e => handleChange('district', e.target.value)} className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none text-sm font-medium">
-                      <option value="">Seçiniz</option>
-                      {form.city && CITIES_WITH_DISTRICTS[form.city].map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Activity / Recent Requests */}
-              <div className="mt-10 space-y-6">
-                <div>
-                  <h4 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2"><Calendar size={18} className="text-brand-orange" /> Son Taleplerim</h4>
-                  <div className="space-y-3">
-                    {[
-                      { id: 'REQ-4521', service: 'Çekici Hizmeti', date: '18 Kas 2025', status: 'Tamamlandı', amount: 850 },
-                      { id: 'REQ-4489', service: 'Akü Takviyesi', date: '12 Kas 2025', status: 'Tamamlandı', amount: 400 },
-                      { id: 'REQ-4401', service: 'Lastik Değişimi', date: '05 Kas 2025', status: 'İptal', amount: 0 }
-                    ].map(req => (
-                      <div key={req.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-brand-orange hover:bg-orange-50/30 transition-all cursor-pointer group">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${req.status === 'Tamamlandı' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                            {req.status === 'Tamamlandı' ? <Check size={18} /> : <X size={18} />}
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm text-gray-800 group-hover:text-brand-orange transition-colors">{req.service}</p>
-                            <p className="text-xs text-gray-400">#{req.id} • {req.date}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-bold text-sm ${req.amount > 0 ? 'text-gray-800' : 'text-gray-400'}`}>{req.amount > 0 ? `₺${req.amount}` : '—'}</p>
-                          <span className={`text-xs px-2 py-0.5 rounded ${req.status === 'Tamamlandı' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>{req.status}</span>
-                        </div>
+                  
+                  <div className="space-y-4 mb-6">
+                    <div className="flex justify-between py-3 border-b border-gray-100">
+                      <span className="text-sm text-gray-500">Durum</span>
+                      <span className={`text-sm font-bold px-3 py-1 rounded ${selectedOrder.status === 'Tamamlandı' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>{selectedOrder.status}</span>
+                    </div>
+                    <div className="flex justify-between py-3 border-b border-gray-100">
+                      <span className="text-sm text-gray-500">Tarih</span>
+                      <span className="text-sm font-bold text-gray-800">{selectedOrder.date}</span>
+                    </div>
+                    <div className="flex justify-between py-3 border-b border-gray-100">
+                      <span className="text-sm text-gray-500">Hizmet Sağlayıcı</span>
+                      <span className="text-sm font-bold text-gray-800">{selectedOrder.provider}</span>
+                    </div>
+                    <div className="flex justify-between py-3 border-b border-gray-100">
+                      <span className="text-sm text-gray-500">Başlangıç</span>
+                      <span className="text-sm font-bold text-gray-800">{selectedOrder.from}</span>
+                    </div>
+                    {selectedOrder.to && (
+                      <div className="flex justify-between py-3 border-b border-gray-100">
+                        <span className="text-sm text-gray-500">Varış</span>
+                        <span className="text-sm font-bold text-gray-800">{selectedOrder.to}</span>
                       </div>
-                    ))}
+                    )}
+                    <div className="flex justify-between py-3">
+                      <span className="text-sm text-gray-500">Tutar</span>
+                      <span className="text-lg font-bold text-brand-orange">{selectedOrder.amount > 0 ? `₺${selectedOrder.amount}` : 'Ücretsiz'}</span>
+                    </div>
+                  </div>
+
+                  {selectedOrder.rating && (
+                    <div className="p-4 rounded-xl bg-yellow-50 border border-yellow-100 mb-4">
+                      <p className="text-xs text-gray-600 mb-2">Değerlendirmeniz:</p>
+                      <div className="flex text-yellow-400">
+                        {[...Array(selectedOrder.rating)].map((_, i) => <Star key={i} size={20} fill="currentColor" />)}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button className="flex-1 py-3 rounded-xl bg-brand-orange text-white font-bold hover:bg-brand-lightOrange transition-colors">Tekrar Sipariş Ver</button>
+                    <button className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors">Destek</button>
                   </div>
                 </div>
-                <div className="p-5 rounded-2xl bg-gray-100 border border-gray-200">
-                  <h4 className="font-bold text-sm text-gray-800 mb-2 flex items-center gap-2"><ShieldCheck size={16} className="text-gray-700" /> Güvenlik</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed">Telefon doğrulaması başarıyla tamamlandı. İleri seviye güvenlik (2FA) yakında.</p>
+              </div>
+            )}
+
+            {/* MODAL: CHANGE PASSWORD */}
+            {showChangePassword && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowChangePassword(false)}>
+                <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-bold text-gray-900">Şifre Değiştir</h3>
+                    <button onClick={() => setShowChangePassword(false)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                  </div>
+                  
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Mevcut Şifre</label>
+                      <div className="relative">
+                        <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          type={showPassword.current ? 'text' : 'password'}
+                          value={passwordForm.current}
+                          onChange={e => setPasswordForm(prev => ({ ...prev, current: e.target.value }))}
+                          className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none text-sm font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(prev => ({ ...prev, current: !prev.current }))}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword.current ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Yeni Şifre</label>
+                      <div className="relative">
+                        <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          type={showPassword.new ? 'text' : 'password'}
+                          value={passwordForm.new}
+                          onChange={e => setPasswordForm(prev => ({ ...prev, new: e.target.value }))}
+                          className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none text-sm font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(prev => ({ ...prev, new: !prev.new }))}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Yeni Şifre (Tekrar)</label>
+                      <div className="relative">
+                        <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          type={showPassword.confirm ? 'text' : 'password'}
+                          value={passwordForm.confirm}
+                          onChange={e => setPasswordForm(prev => ({ ...prev, confirm: e.target.value }))}
+                          className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none text-sm font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(prev => ({ ...prev, confirm: !prev.confirm }))}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-2 mb-6">
+                    <AlertCircle size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-700 leading-relaxed">
+                      Şifreniz en az 6 karakter olmalı ve güçlü bir kombinasyon içermelidir.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button onClick={handlePasswordChange} className="flex-1 py-3 rounded-xl bg-brand-orange text-white font-bold hover:bg-brand-lightOrange transition-colors">Şifreyi Güncelle</button>
+                    <button onClick={() => setShowChangePassword(false)} className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors">İptal</button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
           </div>
         </div>
       </div>

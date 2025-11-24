@@ -74,3 +74,28 @@ export interface Customer {
   district?: string;
   createdAt?: string;
 }
+
+// B2C Request (Talep) yapısı
+export interface Request {
+  id: string;
+  customerId: string;
+  serviceType: string; // cekici | aku | lastik | yakit | yardim
+  description: string;
+  fromLocation: string;
+  toLocation?: string;
+  vehicleInfo?: string;
+  status: 'open' | 'matched' | 'completed' | 'cancelled';
+  createdAt: string;
+}
+
+// B2B Offer (Teklif) yapısı
+export interface Offer {
+  id: string;
+  requestId: string;
+  partnerId: string; // ileride gerçek partner id
+  price: number;
+  etaMinutes: number;
+  message?: string;
+  status: 'sent' | 'accepted' | 'rejected' | 'withdrawn';
+  createdAt: string;
+}

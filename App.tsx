@@ -14,13 +14,19 @@ import QuotePage from './components/QuotePage';
 import ProviderDetailPage from './components/ProviderDetailPage';
 import PartnerRegisterPage from './components/PartnerRegisterPage';
 import PartnerDashboard from './components/PartnerDashboard';
+import OffersPanel from './components/OffersPanel';
+import AdminLoginPage from './components/AdminLoginPage';
+import AdminDashboard from './components/AdminDashboard';
 import { Provider, Customer } from './types';
 
 function App() {
   // Expanded routing state
-  const [currentPage, setCurrentPage] = useState<'home' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard'>('home');
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
-  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(() => {
+    const saved = localStorage.getItem('yolmov_customer');
+    return saved ? JSON.parse(saved) : null;
+  });
   
   // Search Params State
   const [searchParams, setSearchParams] = useState({
@@ -33,6 +39,18 @@ function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
+
+  // Basit custom event ile iç bileşenlerden yönlendirme (örn. CustomerProfilePage içindeki Teklifleri Gör butonu)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.page) {
+        setCurrentPage(detail.page);
+      }
+    };
+    window.addEventListener('yolmov:navigate', handler);
+    return () => window.removeEventListener('yolmov:navigate', handler);
+  }, []);
 
   const handleSearch = (city: string, district: string, serviceId: string) => {
     setSearchParams({ city, district, serviceId });
@@ -53,11 +71,13 @@ function App() {
       phone,
       createdAt: new Date().toISOString()
     };
+    localStorage.setItem('yolmov_customer', JSON.stringify(fakeCustomer));
     setCustomer(fakeCustomer);
     setCurrentPage('customer-profile');
   };
 
   const handleCustomerLogout = () => {
+    localStorage.removeItem('yolmov_customer');
     setCustomer(null);
     setCurrentPage('home');
   };
@@ -65,24 +85,38 @@ function App() {
   const renderContent = () => {
     switch (currentPage) {
       case 'login-customer':
-        return <LoginPage userType="customer" onLoginSuccess={() => handleCustomerLogin('+90 5XX XXX XX XX')} />;
+        return <LoginPage userType="customer" onLoginSuccess={handleCustomerLogin} />;
       case 'login-partner':
         return <LoginPage userType="partner" onNavigateToRegister={() => setCurrentPage('partner-register')} onLoginSuccess={() => setCurrentPage('partner-dashboard')} />;
       case 'partner-register':
         return <PartnerRegisterPage />;
       case 'partner-dashboard':
         return <PartnerDashboard onLogout={() => setCurrentPage('home')} />;
+      case 'admin-login':
+        return <AdminLoginPage onLogin={() => setCurrentPage('admin-dashboard')} />;
+      case 'admin-dashboard':
+        return <AdminDashboard onLogout={() => setCurrentPage('home')} />;
       case 'customer-profile':
         return customer ? (
           <CustomerProfilePage 
             customer={customer} 
-            onUpdate={(c) => setCustomer(c)} 
+            onUpdate={(c) => {
+              localStorage.setItem('yolmov_customer', JSON.stringify(c));
+              setCustomer(c);
+            }} 
             onLogout={handleCustomerLogout}
             onBackHome={() => setCurrentPage('home')}
           />
         ) : (
           <div className="flex items-center justify-center h-[50vh]">Profil bulunamadı</div>
         );
+      case 'customer-offers':
+        return customer ? (
+          <OffersPanel 
+            customer={customer}
+            onBack={() => setCurrentPage('customer-profile')}
+          />
+        ) : <div className="flex items-center justify-center h-[50vh]">Önce giriş yapın</div>;
       case 'quote':
         return <QuotePage onHome={() => setCurrentPage('home')} />;
       case 'listing':
@@ -121,12 +155,13 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-sans text-brand-dark selection:bg-brand-orange selection:text-white">
-      {/* Hide Header on Partner Dashboard for full screen experience */}
-      {currentPage !== 'partner-dashboard' && (
+      {/* Hide Header on Partner Dashboard and Admin Dashboard for full screen experience */}
+      {currentPage !== 'partner-dashboard' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-login' && (
         <Header 
           onNavigate={(page) => {
              if (page === 'home') setCurrentPage('home');
              if (page === 'login-customer') setCurrentPage('login-customer');
+             if (page === 'admin-login') setCurrentPage('admin-login');
           }}
           onLoginClick={() => setCurrentPage('login-customer')}
           onAgencyLoginClick={() => setCurrentPage('login-partner')}
@@ -141,8 +176,8 @@ function App() {
         {renderContent()}
       </main>
       
-      {/* Hide Footer on Partner Dashboard */}
-      {currentPage !== 'partner-dashboard' && <Footer />}
+      {/* Hide Footer on Partner Dashboard and Admin Dashboard */}
+      {currentPage !== 'partner-dashboard' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-login' && <Footer />}
       
       {/* Call to Action - Sticky Mobile Button (Visible only on small screens and Home page) */}
       {currentPage === 'home' && (

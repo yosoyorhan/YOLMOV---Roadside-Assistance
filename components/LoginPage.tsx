@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface LoginPageProps {
   userType: 'customer' | 'partner';
   onNavigateToRegister?: () => void;
-  onLoginSuccess?: () => void;
+  onLoginSuccess?: (phone: string) => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ userType, onNavigateToRegister, onLoginSuccess }) => {
@@ -23,7 +23,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ userType, onNavigateToRegister, o
   const handleSubmit = () => {
     // Call success callback for both user types if provided
     if (onLoginSuccess) {
-      onLoginSuccess();
+      onLoginSuccess(phone);
     }
   };
 

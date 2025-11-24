@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Menu, X, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import NotificationCenter from './shared/NotificationCenter';
 
 interface HeaderProps {
-  onNavigate: (page: 'home' | 'login-customer') => void;
+  onNavigate: (page: 'home' | 'login-customer' | 'admin-login') => void;
   onLoginClick: () => void;
   onAgencyLoginClick: () => void;
   onPartnerClick: () => void;
@@ -47,11 +48,19 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLoginClick, onAgencyLogin
                 {item}
               </button>
             ))}
+            <button 
+              onClick={() => onNavigate('admin-login')}
+              className="text-gray-500 hover:text-orange-600 font-medium transition-colors text-xs lg:text-sm whitespace-nowrap opacity-50 hover:opacity-100"
+              title="Admin Panel"
+            >
+              🔐 Admin
+            </button>
           </nav>
         </div>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
+          <NotificationCenter />
           {!customer && (
             <>
               <button 
