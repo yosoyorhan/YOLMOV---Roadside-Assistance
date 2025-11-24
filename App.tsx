@@ -8,17 +8,19 @@ import Advantages from './components/Advantages';
 import Campaigns from './components/Campaigns';
 import Footer from './components/Footer';
 import LoginPage from './components/LoginPage';
+import CustomerProfilePage from './components/CustomerProfilePage';
 import ListingPage from './components/ListingPage';
 import QuotePage from './components/QuotePage';
 import ProviderDetailPage from './components/ProviderDetailPage';
 import PartnerRegisterPage from './components/PartnerRegisterPage';
 import PartnerDashboard from './components/PartnerDashboard';
-import { Provider } from './types';
+import { Provider, Customer } from './types';
 
 function App() {
   // Expanded routing state
-  const [currentPage, setCurrentPage] = useState<'home' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile'>('home');
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   
   // Search Params State
   const [searchParams, setSearchParams] = useState({
@@ -42,16 +44,45 @@ function App() {
     setCurrentPage('detail');
   };
 
+  const handleCustomerLogin = (phone: string) => {
+    // Mock create customer profile
+    const fakeCustomer: Customer = {
+      id: 'CUST-' + Date.now(),
+      firstName: 'Misafir',
+      lastName: 'Kullanıcı',
+      phone,
+      createdAt: new Date().toISOString()
+    };
+    setCustomer(fakeCustomer);
+    setCurrentPage('customer-profile');
+  };
+
+  const handleCustomerLogout = () => {
+    setCustomer(null);
+    setCurrentPage('home');
+  };
+
   const renderContent = () => {
     switch (currentPage) {
       case 'login-customer':
-        return <LoginPage userType="customer" />;
+        return <LoginPage userType="customer" onLoginSuccess={() => handleCustomerLogin('+90 5XX XXX XX XX')} />;
       case 'login-partner':
         return <LoginPage userType="partner" onNavigateToRegister={() => setCurrentPage('partner-register')} onLoginSuccess={() => setCurrentPage('partner-dashboard')} />;
       case 'partner-register':
         return <PartnerRegisterPage />;
       case 'partner-dashboard':
         return <PartnerDashboard onLogout={() => setCurrentPage('home')} />;
+      case 'customer-profile':
+        return customer ? (
+          <CustomerProfilePage 
+            customer={customer} 
+            onUpdate={(c) => setCustomer(c)} 
+            onLogout={handleCustomerLogout}
+            onBackHome={() => setCurrentPage('home')}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-[50vh]">Profil bulunamadı</div>
+        );
       case 'quote':
         return <QuotePage onHome={() => setCurrentPage('home')} />;
       case 'listing':
@@ -100,6 +131,9 @@ function App() {
           onLoginClick={() => setCurrentPage('login-customer')}
           onAgencyLoginClick={() => setCurrentPage('login-partner')}
           onPartnerClick={() => setCurrentPage('partner-register')}
+          customer={customer}
+          onCustomerProfile={() => setCurrentPage('customer-profile')}
+          onCustomerLogout={handleCustomerLogout}
         />
       )}
       

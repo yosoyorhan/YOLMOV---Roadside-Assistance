@@ -21,11 +21,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ userType, onNavigateToRegister, o
   const isCustomer = userType === 'customer';
 
   const handleSubmit = () => {
-    if (!isCustomer && onLoginSuccess) {
-       // For demo purposes, instantly log partner in
-       onLoginSuccess();
+    // Call success callback for both user types if provided
+    if (onLoginSuccess) {
+      onLoginSuccess();
     }
-    // For customers, we would normally navigate to dashboard or profile
   };
 
   return (

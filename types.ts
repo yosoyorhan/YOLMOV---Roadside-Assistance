@@ -61,3 +61,16 @@ export interface JobRequest {
   urgency: 'high' | 'normal';
   expiresIn?: number; // New: Seconds left to accept
 }
+
+// Customer (B2C) user profile information
+export interface Customer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  avatarUrl?: string;
+  city?: string;
+  district?: string;
+  createdAt?: string;
+}
