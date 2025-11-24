@@ -214,14 +214,6 @@ function App() {
         <Footer onNavigate={(page) => setCurrentPage(page)} />
       )}
       
-      {/* Call to Action - Sticky Mobile Button (Visible only on small screens and Home page) */}
-      {currentPage === 'home' && (
-        <div className="fixed bottom-4 left-4 right-4 md:hidden z-40">
-          <button className="w-full bg-brand-orange text-white py-4 rounded-xl font-bold shadow-lg shadow-orange-400/30 flex items-center justify-center gap-2">
-            Acil Yardım Çağır
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -284,12 +284,11 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
             transition={{ duration: 0.8 }}
             className="mb-6 md:mb-10"
           >
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-display font-extrabold text-white leading-[1.15] mb-3 md:mb-6 drop-shadow-2xl tracking-tight">
+            <h1 className="text-xl md:text-4xl lg:text-5xl font-display font-extrabold text-white leading-tight mb-2 md:mb-6 drop-shadow-2xl tracking-tight">
               Yolda Kaldığınızda <br className="hidden md:block" />
               <span className="text-brand-orange inline-block mt-1 md:mt-2">Yanınızdayız.</span>
             </h1>
-            
-            <h3 className="text-sm md:text-xl text-gray-100 max-w-2xl mx-auto font-light leading-relaxed drop-shadow-lg">
+            <h3 className="text-xs md:text-lg text-gray-100 max-w-xl mx-auto font-light leading-snug drop-shadow-lg">
               Çekici, akü takviyesi, yakıt, lastik ve yol yardım hizmetlerine tek tıkla, güvenle ulaşın.
             </h3>
           </motion.div>
