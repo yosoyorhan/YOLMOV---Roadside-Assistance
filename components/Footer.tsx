@@ -1,7 +1,18 @@
 import React from 'react';
 import { Instagram, Twitter, Facebook, Linkedin, Phone, Mail, MapPin } from 'lucide-react';
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  onNavigate?: (page: 'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog') => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const handleNavigation = (page: 'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog') => {
+    if (onNavigate) {
+      onNavigate(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white pt-16 pb-8">
       <div className="container mx-auto px-6 md:px-12 lg:px-24 xl:px-32">
@@ -10,7 +21,7 @@ const Footer: React.FC = () => {
           
           {/* Brand Column */}
           <div>
-            <div className="mb-6">
+            <div className="mb-6 cursor-pointer" onClick={() => handleNavigation('home')}>
               <img 
                 src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-logo-cutter-beyaz.png" 
                 alt="Yolmov Logo" 
@@ -33,9 +44,31 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-lg font-bold mb-6 text-white/90">Kurumsal</h4>
             <ul className="space-y-3 text-sm text-gray-400">
-              {['Hakkımızda', 'Nasıl Çalışır', 'Kariyer', 'Blog', 'İletişim'].map(link => (
-                <li key={link}><a href="#" className="hover:text-brand-orange transition-colors">{link}</a></li>
-              ))}
+              <li>
+                <button onClick={() => handleNavigation('about')} className="hover:text-brand-orange transition-colors text-left">
+                  Hakkımızda
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleNavigation('services')} className="hover:text-brand-orange transition-colors text-left">
+                  Hizmetler
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleNavigation('career')} className="hover:text-brand-orange transition-colors text-left">
+                  Kariyer
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleNavigation('blog')} className="hover:text-brand-orange transition-colors text-left">
+                  Blog
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleNavigation('contact')} className="hover:text-brand-orange transition-colors text-left">
+                  İletişim
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -44,7 +77,11 @@ const Footer: React.FC = () => {
             <h4 className="text-lg font-bold mb-6 text-white/90">Hizmetler</h4>
             <ul className="space-y-3 text-sm text-gray-400">
               {['Çekici Hizmeti', 'Akü Takviyesi', 'Lastik Değişimi', 'Yakıt Desteği', 'Oto Kurtarma'].map(link => (
-                <li key={link}><a href="#" className="hover:text-brand-orange transition-colors">{link}</a></li>
+                <li key={link}>
+                  <button onClick={() => handleNavigation('services')} className="hover:text-brand-orange transition-colors text-left">
+                    {link}
+                  </button>
+                </li>
               ))}
             </ul>
           </div>

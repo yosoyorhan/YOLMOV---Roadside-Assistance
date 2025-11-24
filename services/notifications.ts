@@ -106,16 +106,47 @@ export function notifyOfferRejected(offerId: string, requestId: string) {
 export function seedDemoNotifications() {
   if (getNotifications().length > 0) return;
   
-  createNotification({
-    type: 'system',
-    title: 'Hoş Geldiniz',
-    message: 'YOLMOV platformuna hoş geldiniz! İlk hizmetinizi başlatmak için bir talep oluşturun.'
-  });
+  const demoNotifications = [
+    {
+      type: 'system' as const,
+      title: 'Hoş Geldiniz! 🎉',
+      message: 'YOLMOV platformuna hoş geldiniz! Yolda kaldığınız her an yanınızdayız.'
+    },
+    {
+      type: 'offer_received' as const,
+      title: 'Yeni Teklif Aldınız',
+      message: 'Hızlı Çekici Hizmetleri size ₺850 tutarında teklif gönderdi. Teklifi görüntülemek için tıklayın.',
+      relatedId: 'req-1'
+    },
+    {
+      type: 'offer_received' as const,
+      title: 'Yeni Teklif Aldınız',
+      message: 'Express Yol Yardım size ₺900 tutarında teklif gönderdi.',
+      relatedId: 'req-1'
+    },
+    {
+      type: 'offer_accepted' as const,
+      title: 'Teklif Kabul Edildi ✓',
+      message: 'Güvenli Oto Servis teklifiniz müşteri tarafından kabul edildi. Hemen yola çıkın!',
+      relatedId: 'offer-3'
+    },
+    {
+      type: 'request_matched' as const,
+      title: 'Talep Eşleşti',
+      message: 'Yeni bir yol yardım talebi sizin bölgenizde! Hemen teklif gönderin.',
+      relatedId: 'req-3'
+    },
+    {
+      type: 'system' as const,
+      title: 'Platform Güncellemesi',
+      message: 'Yeni özellikler eklendi: Anlık konum paylaşımı, otomatik fiyatlandırma ve daha fazlası!'
+    }
+  ];
 
-  createNotification({
-    type: 'offer_received',
-    title: 'Yeni Teklif',
-    message: 'Yılmaz Oto Kurtarma size ₺850 tutarında teklif gönderdi.',
-    relatedId: 'REQ-demo1'
+  demoNotifications.reverse().forEach(notif => {
+    createNotification(notif);
   });
+  
+  console.log('✅ Demo notifications seeded:', demoNotifications.length);
 }
+

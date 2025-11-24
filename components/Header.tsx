@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import NotificationCenter from './shared/NotificationCenter';
 
 interface HeaderProps {
-  onNavigate: (page: 'home' | 'about' | 'services' | 'faq' | 'login-customer' | 'admin-login') => void;
+  onNavigate: (page: 'home' | 'about' | 'services' | 'faq' | 'contact' | 'login-customer' | 'admin-login') => void;
   onLoginClick: () => void;
   onAgencyLoginClick: () => void;
   onPartnerClick: () => void;
@@ -52,7 +52,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLoginClick, onAgencyLogin
               Hizmetler
             </button>
             <button 
-              onClick={() => onNavigate('home')}
+              onClick={() => onNavigate('contact')}
               className="text-gray-600 hover:text-brand-orange font-medium transition-colors text-sm lg:text-base whitespace-nowrap"
             >
               İletişim
@@ -137,18 +137,42 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLoginClick, onAgencyLogin
             className="absolute top-[80px] left-0 w-full bg-white shadow-lg overflow-hidden md:hidden border-t border-gray-100"
           >
             <div className="flex flex-col p-6 space-y-4">
-              {['Hakkımızda', 'Hizmetler', 'İletişim', 'SSS'].map((item) => (
-                <button 
-                  key={item} 
-                  onClick={() => {
-                    onNavigate('home');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="text-lg font-medium text-gray-700 py-2 border-b border-gray-50 text-left"
-                >
-                  {item}
-                </button>
-              ))}
+              <button 
+                onClick={() => {
+                  onNavigate('about');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-lg font-medium text-gray-700 py-2 border-b border-gray-50 text-left"
+              >
+                Hakkımızda
+              </button>
+              <button 
+                onClick={() => {
+                  onNavigate('services');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-lg font-medium text-gray-700 py-2 border-b border-gray-50 text-left"
+              >
+                Hizmetler
+              </button>
+              <button 
+                onClick={() => {
+                  onNavigate('contact');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-lg font-medium text-gray-700 py-2 border-b border-gray-50 text-left"
+              >
+                İletişim
+              </button>
+              <button 
+                onClick={() => {
+                  onNavigate('faq');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-lg font-medium text-gray-700 py-2 border-b border-gray-50 text-left"
+              >
+                SSS
+              </button>
               <div className="pt-4 flex flex-col gap-3">
                 {!customer && (
                   <>

@@ -15,6 +15,26 @@ import {
 } from 'lucide-react';
 import { ServiceCategory, Step, Advantage, Campaign, Provider, JobRequest } from './types';
 
+// LocalStorage Keys - Centralized to avoid namespace collisions
+export const STORAGE_KEYS = {
+  // User Data
+  customer: 'yolmov_customer',
+  partner: 'yolmov_partner',
+  admin: 'yolmov_admin',
+  
+  // Application Data
+  requests: 'yolmov_requests',
+  offers: 'yolmov_offers',
+  notifications: 'yolmov_notifications',
+  
+  // Demo & Init
+  demoInitialized: 'yolmov_demo_initialized',
+  
+  // Preferences
+  theme: 'yolmov_theme',
+  language: 'yolmov_language'
+} as const;
+
 export const SERVICES: ServiceCategory[] = [
   {
     id: 'tow',

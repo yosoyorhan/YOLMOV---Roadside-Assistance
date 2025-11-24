@@ -20,11 +20,16 @@ import AdminDashboard from './components/AdminDashboard';
 import AboutPage from './components/AboutPage';
 import ServicesPage from './components/ServicesPage';
 import FAQPage from './components/FAQPage';
+import ContactPage from './components/ContactPage';
+import CareerPage from './components/CareerPage';
+import BlogPage from './components/BlogPage';
+import NotFoundPage from './components/NotFoundPage';
 import { Provider, Customer } from './types';
+import { initDemoData } from './services/demoData';
 
 function App() {
   // Expanded routing state
-  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'services' | 'faq' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard' | 'not-found'>('home');
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(() => {
     const saved = localStorage.getItem('yolmov_customer');
@@ -37,6 +42,11 @@ function App() {
     district: '',
     serviceId: ''
   });
+
+  // Initialize demo data on first load
+  useEffect(() => {
+    initDemoData();
+  }, []);
 
   // Scroll to top when page changes
   useEffect(() => {
@@ -103,6 +113,12 @@ function App() {
         return <ServicesPage />;
       case 'faq':
         return <FAQPage />;
+      case 'contact':
+        return <ContactPage />;
+      case 'career':
+        return <CareerPage />;
+      case 'blog':
+        return <BlogPage />;
       case 'login-customer':
         return <LoginPage userType="customer" onLoginSuccess={handleCustomerLogin} />;
       case 'login-partner':
@@ -158,6 +174,8 @@ function App() {
         ) : (
           <div className="flex items-center justify-center h-[50vh]">Provider not found</div>
         );
+      case 'not-found':
+        return <NotFoundPage onNavigateHome={() => setCurrentPage('home')} />;
       case 'home':
       default:
         return (
@@ -192,7 +210,9 @@ function App() {
       </main>
       
       {/* Hide Footer on Partner Dashboard and Admin Dashboard */}
-      {currentPage !== 'partner-dashboard' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-login' && <Footer />}
+      {currentPage !== 'partner-dashboard' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-login' && (
+        <Footer onNavigate={(page) => setCurrentPage(page)} />
+      )}
       
       {/* Call to Action - Sticky Mobile Button (Visible only on small screens and Home page) */}
       {currentPage === 'home' && (
