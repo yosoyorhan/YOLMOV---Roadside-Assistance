@@ -16,6 +16,9 @@ import { JobRequest, Request } from '../types';
 import { MOCK_PARTNER_REQUESTS, CITIES_WITH_DISTRICTS } from '../constants';
 import { createOffer, getRequestsByCustomer } from '../services/mockApi';
 import { motion, AnimatePresence } from 'framer-motion';
+import PartnerOfferHistory from './PartnerOfferHistory';
+import PartnerPayments from './PartnerPayments';
+import PartnerDocuments from './PartnerDocuments';
 
 interface PartnerDashboardProps {
   onLogout: () => void;
@@ -1279,6 +1282,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               { id: 'requests', label: 'Talep Havuzu', icon: Bell },
               { id: 'active', label: 'Aktif Görev', icon: Navigation },
               { id: 'service_routes', label: 'Hizmet Rotaları', icon: Route },
+              { id: 'offer_history', label: 'Teklif Geçmişim', icon: FileText },
+              { id: 'payments', label: 'Ödemeler & Komisyon', icon: Receipt },
+              { id: 'documents', label: 'Belgelerim', icon: FileCheck },
               { id: 'history', label: 'Geçmiş İşler', icon: History },
               { id: 'wallet', label: 'Finansal Durum', icon: Wallet },
               { id: 'fleet', label: 'Filo Yönetimi', icon: Truck },
@@ -1326,6 +1332,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
           <h1 className="text-lg lg:text-xl font-bold text-slate-800 flex items-center gap-2 lg:gap-3 truncate">
             {activeTab === 'requests' && 'İş Talepleri'}
             {activeTab === 'active' && 'Aktif Operasyon'}
+            {activeTab === 'offer_history' && 'Teklif Geçmişim'}
+            {activeTab === 'payments' && 'Ödemeler & Komisyon'}
+            {activeTab === 'documents' && 'Belgelerim'}
             {activeTab === 'wallet' && 'Finansal Durum'}
             {activeTab === 'history' && 'İş Geçmişi'}
             {activeTab === 'settings' && 'Hesap Ayarları'}
@@ -1554,6 +1563,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                )}
             </div>
           )}
+          {activeTab === 'offer_history' && <PartnerOfferHistory />}
+          {activeTab === 'payments' && <PartnerPayments />}
+          {activeTab === 'documents' && <PartnerDocuments />}
           {activeTab === 'history' && renderHistoryTab()}
           {activeTab === 'wallet' && renderWalletTab()}
           {activeTab === 'settings' && renderSettingsTab()}

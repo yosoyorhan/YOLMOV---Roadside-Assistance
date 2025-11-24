@@ -99,3 +99,33 @@ export interface Offer {
   status: 'sent' | 'accepted' | 'rejected' | 'withdrawn';
   createdAt: string;
 }
+
+// Admin User Roles
+export enum AdminRole {
+  SUPER_ADMIN = 'super_admin',
+  SUPPORT = 'support',
+  FINANCE = 'finance',
+  OPERATIONS = 'operations',
+}
+
+// Admin User
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: AdminRole;
+  permissions: string[];
+  createdAt: string;
+}
+
+// System Log Entry
+export interface SystemLog {
+  id: string;
+  adminId: string;
+  adminName: string;
+  action: 'approve' | 'reject' | 'delete' | 'update' | 'create';
+  entity: 'user' | 'partner' | 'request' | 'offer' | 'document';
+  entityId: string;
+  details: string;
+  timestamp: string;
+}
