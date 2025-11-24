@@ -275,20 +275,20 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 z-10"></div>
       </div>
       
-      <div className="container mx-auto px-6 md:px-12 lg:px-24 xl:px-32 relative z-20 pt-20 pb-24">
+      <div className="container mx-auto px-6 md:px-12 lg:px-24 xl:px-32 relative z-20 pt-10 pb-10">
         <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
           
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="mb-6 md:mb-10"
+            className="mb-4 md:mb-10"
           >
-            <h1 className="text-xl md:text-4xl lg:text-5xl font-display font-extrabold text-white leading-tight mb-2 md:mb-6 drop-shadow-2xl tracking-tight">
+            <h1 className="text-2xl md:text-4xl lg:text-5xl font-display font-extrabold text-white leading-tight mb-1 md:mb-6 drop-shadow-2xl tracking-tight">
               Yolda Kaldığınızda <br className="hidden md:block" />
               <span className="text-brand-orange inline-block mt-1 md:mt-2">Yanınızdayız.</span>
             </h1>
-            <h3 className="text-xs md:text-lg text-gray-100 max-w-xl mx-auto font-light leading-snug drop-shadow-lg">
+            <h3 className="text-sm md:text-lg text-gray-100 max-w-xl mx-auto font-light leading-snug drop-shadow-lg">
               Çekici, akü takviyesi, yakıt, lastik ve yol yardım hizmetlerine tek tıkla, güvenle ulaşın.
             </h3>
           </motion.div>
