@@ -17,11 +17,14 @@ import PartnerDashboard from './components/PartnerDashboard';
 import OffersPanel from './components/OffersPanel';
 import AdminLoginPage from './components/AdminLoginPage';
 import AdminDashboard from './components/AdminDashboard';
+import AboutPage from './components/AboutPage';
+import ServicesPage from './components/ServicesPage';
+import FAQPage from './components/FAQPage';
 import { Provider, Customer } from './types';
 
 function App() {
   // Expanded routing state
-  const [currentPage, setCurrentPage] = useState<'home' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'services' | 'faq' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard'>('home');
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(() => {
     const saved = localStorage.getItem('yolmov_customer');
@@ -39,6 +42,16 @@ function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
+
+  // Check for /operasyon path in URL for admin access
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/operasyon' || path.startsWith('/operasyon/')) {
+      setCurrentPage('admin-login');
+      // Replace URL without reload
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
 
   // Basit custom event ile iç bileşenlerden yönlendirme (örn. CustomerProfilePage içindeki Teklifleri Gör butonu)
   useEffect(() => {
@@ -84,6 +97,12 @@ function App() {
 
   const renderContent = () => {
     switch (currentPage) {
+      case 'about':
+        return <AboutPage />;
+      case 'services':
+        return <ServicesPage />;
+      case 'faq':
+        return <FAQPage />;
       case 'login-customer':
         return <LoginPage userType="customer" onLoginSuccess={handleCustomerLogin} />;
       case 'login-partner':
@@ -158,11 +177,7 @@ function App() {
       {/* Hide Header on Partner Dashboard and Admin Dashboard for full screen experience */}
       {currentPage !== 'partner-dashboard' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-login' && (
         <Header 
-          onNavigate={(page) => {
-             if (page === 'home') setCurrentPage('home');
-             if (page === 'login-customer') setCurrentPage('login-customer');
-             if (page === 'admin-login') setCurrentPage('admin-login');
-          }}
+          onNavigate={(page) => setCurrentPage(page)}
           onLoginClick={() => setCurrentPage('login-customer')}
           onAgencyLoginClick={() => setCurrentPage('login-partner')}
           onPartnerClick={() => setCurrentPage('partner-register')}

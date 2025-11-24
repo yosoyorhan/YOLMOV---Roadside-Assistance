@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import NotificationCenter from './shared/NotificationCenter';
 
 interface HeaderProps {
-  onNavigate: (page: 'home' | 'login-customer' | 'admin-login') => void;
+  onNavigate: (page: 'home' | 'about' | 'services' | 'faq' | 'login-customer' | 'admin-login') => void;
   onLoginClick: () => void;
   onAgencyLoginClick: () => void;
   onPartnerClick: () => void;
@@ -39,21 +39,29 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLoginClick, onAgencyLogin
 
           {/* Desktop Navigation - Left Aligned */}
           <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
-            {['Hakkımızda', 'Hizmetler', 'İletişim', 'SSS'].map((item) => (
-              <button 
-                key={item} 
-                onClick={() => onNavigate('home')}
-                className="text-gray-600 hover:text-brand-orange font-medium transition-colors text-sm lg:text-base whitespace-nowrap"
-              >
-                {item}
-              </button>
-            ))}
             <button 
-              onClick={() => onNavigate('admin-login')}
-              className="text-gray-500 hover:text-orange-600 font-medium transition-colors text-xs lg:text-sm whitespace-nowrap opacity-50 hover:opacity-100"
-              title="Admin Panel"
+              onClick={() => onNavigate('about')}
+              className="text-gray-600 hover:text-brand-orange font-medium transition-colors text-sm lg:text-base whitespace-nowrap"
             >
-              🔐 Admin
+              Hakkımızda
+            </button>
+            <button 
+              onClick={() => onNavigate('services')}
+              className="text-gray-600 hover:text-brand-orange font-medium transition-colors text-sm lg:text-base whitespace-nowrap"
+            >
+              Hizmetler
+            </button>
+            <button 
+              onClick={() => onNavigate('home')}
+              className="text-gray-600 hover:text-brand-orange font-medium transition-colors text-sm lg:text-base whitespace-nowrap"
+            >
+              İletişim
+            </button>
+            <button 
+              onClick={() => onNavigate('faq')}
+              className="text-gray-600 hover:text-brand-orange font-medium transition-colors text-sm lg:text-base whitespace-nowrap"
+            >
+              SSS
             </button>
           </nav>
         </div>

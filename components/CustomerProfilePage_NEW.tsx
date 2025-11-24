@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Customer } from '../types';
 import { 
-  Phone, Mail, MapPin, User, Edit3, Check, X, Calendar, ShieldCheck, LogOut,
-  CreditCard, Bell, Lock, Heart, Home, Briefcase, MapPinned, Plus, Trash2,
+  Phone, Mail, MapPin, User, Edit3, Check, X, ShieldCheck, LogOut,
+  Bell, Lock, Heart, Home, Briefcase, MapPinned, Plus, Trash2,
   Star, ChevronRight, Package, Eye, EyeOff, AlertCircle, CheckCircle2
 } from 'lucide-react';
 import { CITIES_WITH_DISTRICTS } from '../constants';
@@ -32,20 +32,14 @@ const MOCK_SAVED_ADDRESSES = [
   { id: 2, label: 'İş', type: 'work', address: 'Maslak Meydan Sok. Veko Giz Plaza', city: 'İstanbul', district: 'Sarıyer' }
 ];
 
-const MOCK_PAYMENT_METHODS = [
-  { id: 1, brand: 'Visa', lastFour: '4532', expiry: '12/26', isDefault: true },
-  { id: 2, brand: 'Mastercard', lastFour: '8901', expiry: '08/27', isDefault: false }
-];
-
 const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onUpdate, onLogout, onBackHome }) => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Customer>(customer);
-  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'favorites' | 'addresses' | 'payments' | 'notifications' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'favorites' | 'addresses' | 'notifications' | 'security'>('profile');
   
   // Modals
   const [selectedOrder, setSelectedOrder] = useState<typeof MOCK_ORDERS[0] | null>(null);
   const [showAddAddress, setShowAddAddress] = useState(false);
-  const [showAddCard, setShowAddCard] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   
   // Notification Preferences
@@ -145,7 +139,6 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
               <TabButton id="orders" label="Taleplerim" icon={Package} />
               <TabButton id="favorites" label="Favoriler" icon={Heart} />
               <TabButton id="addresses" label="Adresler" icon={MapPinned} />
-              <TabButton id="payments" label="Ödeme" icon={CreditCard} />
               <TabButton id="notifications" label="Bildirimler" icon={Bell} />
               <TabButton id="security" label="Güvenlik" icon={Lock} />
             </div>
@@ -308,41 +301,6 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-            )}
-
-            {/* TAB CONTENT: PAYMENT METHODS */}
-            {activeTab === 'payments' && (
-            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-display font-bold text-gray-900">Ödeme Yöntemleri</h3>
-                <button onClick={() => setShowAddCard(true)} className="px-4 py-2 rounded-xl bg-brand-orange text-white text-sm font-bold flex items-center gap-1 hover:bg-brand-lightOrange transition-colors"><Plus size={16}/> Kart Ekle</button>
-              </div>
-              <div className="space-y-4">
-                {MOCK_PAYMENT_METHODS.map(card => (
-                  <div key={card.id} className={`p-5 rounded-xl border ${card.isDefault ? 'border-brand-orange bg-orange-50/50' : 'border-gray-100'} hover:shadow-md transition-all group`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                          <CreditCard size={24} className="text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-gray-800">{card.brand} •••• {card.lastFour}</h4>
-                          <p className="text-xs text-gray-500">Son Kullanma: {card.expiry}</p>
-                          {card.isDefault && <span className="text-xs px-2 py-0.5 rounded bg-brand-orange text-white font-bold mt-1 inline-block">Varsayılan</span>}
-                        </div>
-                      </div>
-                      <button className="text-red-500 hover:text-red-600 p-2"><Trash2 size={18} /></button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-3">
-                <AlertCircle size={18} className="text-blue-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-blue-700 leading-relaxed">
-                  Kartınız güvenli bir şekilde saklanır. Ödeme işlemleri 3D Secure ile korunur.
-                </p>
               </div>
             </div>
             )}
