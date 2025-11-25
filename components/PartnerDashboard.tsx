@@ -246,6 +246,19 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [documentUploadError, setDocumentUploadError] = useState<string | null>(null);
   const documentInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Document Detail Modal State
+  const [showDocumentDetailModal, setShowDocumentDetailModal] = useState(false);
+  const [selectedDocumentDetail, setSelectedDocumentDetail] = useState<{
+    title: string;
+    type: string;
+    status: 'uploaded' | 'pending' | 'not_uploaded';
+    uploadDate?: string;
+    expiryDate?: string;
+    fileSize?: string;
+    fileName?: string;
+    count?: number;
+  } | null>(null);
+
   // Support State - Yeni Talep Oluşturma
   const [showNewTicketPage, setShowNewTicketPage] = useState(false);
   const [ticketSubject, setTicketSubject] = useState('');
@@ -1088,6 +1101,220 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               >
                 İptal
               </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+  
+  const renderDocumentDetailModal = () => {
+    if (!selectedDocumentDetail) return null;
+
+    const getStatusBadge = () => {
+      switch (selectedDocumentDetail.status) {
+        case 'uploaded':
+          return (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border-2 border-green-200 rounded-xl">
+              <CheckCircle2 size={18} className="text-green-600" />
+              <span className="text-sm font-bold text-green-700">Yüklendi ve Onaylandı</span>
+            </div>
+          );
+        case 'pending':
+          return (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+              <Clock size={18} className="text-yellow-600" />
+              <span className="text-sm font-bold text-yellow-700">İnceleme Bekliyor</span>
+            </div>
+          );
+        case 'not_uploaded':
+          return (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border-2 border-red-200 rounded-xl">
+              <AlertTriangle size={18} className="text-red-600" />
+              <span className="text-sm font-bold text-red-700">Henüz Yüklenmedi</span>
+            </div>
+          );
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} 
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden"
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-6 text-white">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <FileCheck size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedDocumentDetail.title}</h2>
+                  <p className="text-sm text-white/80">Belge Detayları</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDocumentDetailModal(false);
+                  setSelectedDocumentDetail(null);
+                }}
+                className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* Status Badge */}
+            <div className="flex justify-center">
+              {getStatusBadge()}
+            </div>
+
+            {/* Document Info */}
+            <div className="bg-slate-50 rounded-2xl p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-slate-500 font-bold mb-1">Belge Türü</p>
+                  <p className="text-sm font-bold text-slate-900">{selectedDocumentDetail.title}</p>
+                </div>
+                {selectedDocumentDetail.uploadDate && (
+                  <div>
+                    <p className="text-xs text-slate-500 font-bold mb-1">Yüklenme Tarihi</p>
+                    <p className="text-sm font-bold text-slate-900">{selectedDocumentDetail.uploadDate}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedDocumentDetail.expiryDate && (
+                <div className="pt-4 border-t border-slate-200">
+                  <p className="text-xs text-slate-500 font-bold mb-1">Son Geçerlilik Tarihi</p>
+                  <p className="text-sm font-bold text-slate-900">{selectedDocumentDetail.expiryDate}</p>
+                </div>
+              )}
+
+              {selectedDocumentDetail.fileName && (
+                <div className="pt-4 border-t border-slate-200">
+                  <p className="text-xs text-slate-500 font-bold mb-1">Dosya Adı</p>
+                  <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <FileText size={16} className="text-slate-400" />
+                    {selectedDocumentDetail.fileName}
+                  </p>
+                </div>
+              )}
+
+              {selectedDocumentDetail.fileSize && (
+                <div className="pt-4 border-t border-slate-200">
+                  <p className="text-xs text-slate-500 font-bold mb-1">Dosya Boyutu</p>
+                  <p className="text-sm font-bold text-slate-900">{selectedDocumentDetail.fileSize}</p>
+                </div>
+              )}
+
+              {selectedDocumentDetail.count && (
+                <div className="pt-4 border-t border-slate-200">
+                  <p className="text-xs text-slate-500 font-bold mb-1">Yüklenen Belge Sayısı</p>
+                  <p className="text-sm font-bold text-slate-900">{selectedDocumentDetail.count} Adet</p>
+                </div>
+              )}
+            </div>
+
+            {/* Info Messages */}
+            {selectedDocumentDetail.status === 'uploaded' && selectedDocumentDetail.expiryDate && (
+              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-green-800 mb-1">Belge Aktif</p>
+                    <p className="text-xs text-green-700">
+                      Bu belge {selectedDocumentDetail.expiryDate} tarihine kadar geçerlidir. Süre dolmadan yenilemeyi unutmayın.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedDocumentDetail.status === 'not_uploaded' && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-red-800 mb-1">Belge Eksik</p>
+                    <p className="text-xs text-red-700">
+                      Bu belgenin yüklenmesi zorunludur. Lütfen en kısa sürede yükleyiniz.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedDocumentDetail.status === 'pending' && (
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <Clock size={20} className="text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-yellow-800 mb-1">İnceleme Aşamasında</p>
+                    <p className="text-xs text-yellow-700">
+                      Belgeniz admin ekibi tarafından inceleniyor. 24 saat içinde sonuç bildirilecektir.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              {selectedDocumentDetail.status === 'uploaded' && (
+                <>
+                  <button className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
+                    <Eye size={18} /> Görüntüle
+                  </button>
+                  <button className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
+                    <Download size={18} /> İndir
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setShowDocumentDetailModal(false);
+                      setSelectedDocumentDetail(null);
+                      setShowDocumentUploadModal(true);
+                      setSelectedDocType(selectedDocumentDetail.title);
+                    }}
+                    className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Upload size={18} /> Yenile
+                  </button>
+                </>
+              )}
+              
+              {selectedDocumentDetail.status === 'not_uploaded' && (
+                <button 
+                  onClick={() => {
+                    setShowDocumentDetailModal(false);
+                    setSelectedDocumentDetail(null);
+                    setShowDocumentUploadModal(true);
+                    setSelectedDocType(selectedDocumentDetail.title);
+                  }}
+                  className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                >
+                  <Upload size={18} /> Hemen Yükle
+                </button>
+              )}
+
+              {selectedDocumentDetail.status === 'pending' && (
+                <button 
+                  onClick={() => {
+                    setShowDocumentDetailModal(false);
+                    setSelectedDocumentDetail(null);
+                  }}
+                  className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"
+                >
+                  Tamam
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
@@ -3686,7 +3913,20 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                        {/* Ticari Sicil */}
-                       <div className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                       <div 
+                          onClick={() => {
+                            setSelectedDocumentDetail({
+                              title: 'Ticaret Sicil Belgesi',
+                              type: 'trade_registry',
+                              status: 'uploaded',
+                              uploadDate: '15.01.2024',
+                              fileName: 'ticaret_sicil_2024.pdf',
+                              fileSize: '2.1 MB'
+                            });
+                            setShowDocumentDetailModal(true);
+                          }}
+                          className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer"
+                       >
                           <div className="flex items-center gap-3 mb-2">
                              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
                                 <FileCheck size={20} />
@@ -3703,7 +3943,17 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                        </div>
 
                        {/* İmza Sirküleri */}
-                       <div className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                       <div 
+                          onClick={() => {
+                            setSelectedDocumentDetail({
+                              title: 'İmza Sirküleri',
+                              type: 'signature',
+                              status: 'not_uploaded'
+                            });
+                            setShowDocumentDetailModal(true);
+                          }}
+                          className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer"
+                       >
                           <div className="flex items-center gap-3 mb-2">
                              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
                                 <FileCheck size={20} />
@@ -3720,7 +3970,19 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                        </div>
 
                        {/* Araç Ruhsatları */}
-                       <div className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                       <div 
+                          onClick={() => {
+                            setSelectedDocumentDetail({
+                              title: 'Araç Ruhsatları',
+                              type: 'vehicle_registration',
+                              status: 'uploaded',
+                              count: 2,
+                              uploadDate: '10.02.2024'
+                            });
+                            setShowDocumentDetailModal(true);
+                          }}
+                          className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer"
+                       >
                           <div className="flex items-center gap-3 mb-2">
                              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600">
                                 <Truck size={20} />
@@ -3737,7 +3999,21 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                        </div>
 
                        {/* Sigorta Poliçesi */}
-                       <div className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                       <div 
+                          onClick={() => {
+                            setSelectedDocumentDetail({
+                              title: 'Sorumluluk Sigortası',
+                              type: 'insurance',
+                              status: 'uploaded',
+                              uploadDate: '05.01.2024',
+                              expiryDate: '31.12.2025',
+                              fileName: 'sigorta_policesi_2024.pdf',
+                              fileSize: '1.5 MB'
+                            });
+                            setShowDocumentDetailModal(true);
+                          }}
+                          className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer"
+                       >
                           <div className="flex items-center gap-3 mb-2">
                              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
                                 <ShieldCheck size={20} />
@@ -3961,6 +4237,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       <AnimatePresence>{selectedJobForDetail && renderJobDetailModal()}</AnimatePresence>
       <AnimatePresence>{showNavigationModal && renderNavigationModal()}</AnimatePresence>
       <AnimatePresence>{showDocumentUploadModal && renderDocumentUploadModal()}</AnimatePresence>
+      <AnimatePresence>{showDocumentDetailModal && renderDocumentDetailModal()}</AnimatePresence>
     </div>
   );
 };
