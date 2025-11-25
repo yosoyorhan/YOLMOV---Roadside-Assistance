@@ -19,7 +19,8 @@ import {
   Navigation,
   Upload,
   X,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Loader2
 } from 'lucide-react';
 import { CITIES_WITH_DISTRICTS } from '../constants';
 
@@ -48,6 +49,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [locationLoadingText, setLocationLoadingText] = useState('Konum alınıyor...');
   
   // Form Data State
   const [formData, setFormData] = useState({
@@ -207,12 +209,14 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
       return;
     }
 
-    console.log('🌍 Konum servisi isteniyor...');
+    console.log('🌍 Konum servisi isteniyor (QuoteWizard)...');
     setIsLoadingLocation(true);
+    setLocationLoadingText('GPS konumunuz alınıyor...');
     
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         console.log('✅ Konum alındı:', position.coords);
+        setLocationLoadingText('Adres bilgileri çözülüyor...');
         const { latitude, longitude } = position.coords;
         
         try {
@@ -233,6 +237,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
           
           const data = await response.json();
           console.log('📍 Geocoding sonucu:', data);
+          setLocationLoadingText('Şehir ve ilçe eşleştiriliyor...');
           
           // Extract city and district from address
           const address = data.address || {};
@@ -260,15 +265,19 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
             
             if (matchedDistrict) {
               console.log('✅ İlçe eşleşti:', matchedDistrict);
-              updateData('fromDistrict', matchedDistrict);
+              setLocationLoadingText('Konum başarıyla belirlendi!');
+              setTimeout(() => {
+                updateData('fromDistrict', matchedDistrict);
+                setIsLoadingLocation(false);
+              }, 500);
             } else {
               console.warn('⚠️ İlçe eşleşmedi, manuel seçim gerekli');
+              setIsLoadingLocation(false);
             }
           } else {
             console.warn('⚠️ Şehir sistemde bulunamadı:', city);
+            setIsLoadingLocation(false);
           }
-          
-          setIsLoadingLocation(false);
         } catch (error) {
           console.error('❌ Reverse geocoding error:', error);
           setIsLoadingLocation(false);
@@ -953,6 +962,37 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
             </button>
          </div>
       )}
+      
+      {/* Loading Overlay - Konum Yükleme Ekranı */}
+      <AnimatePresence>
+        {isLoadingLocation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 20 }}
+              className="bg-white rounded-3xl p-10 flex flex-col items-center shadow-2xl max-w-md mx-4"
+            >
+              <div className="relative mb-6">
+                <Loader2 className="animate-spin text-brand-orange" size={64} strokeWidth={2.5} />
+                <div className="absolute inset-0 rounded-full border-4 border-orange-100 animate-pulse"></div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+                Konumunuz Belirleniyor
+              </h3>
+              <p className="text-lg text-gray-600 text-center">
+                {locationLoadingText}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

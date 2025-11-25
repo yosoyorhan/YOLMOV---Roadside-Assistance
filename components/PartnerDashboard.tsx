@@ -10,7 +10,7 @@ import {
   ArrowDownLeft, CreditCard, Banknote, Landmark, Copy, PieChart, Info,
   UserCog, FileCheck, Upload, Trash2, Save, Briefcase, Mail,
   Truck, Headphones, Plus, PenTool, Wrench, LifeBuoy, Route, MoreHorizontal,
-  Grid, LayoutList, Zap, Send, Star, ThumbsUp, ThumbsDown
+  Grid, LayoutList, Zap, Send, Star, ThumbsUp, ThumbsDown, Building, ShieldCheck, CheckCircle2
 } from 'lucide-react';
 import { JobRequest, Request } from '../types';
 import { MOCK_PARTNER_REQUESTS, CITIES_WITH_DISTRICTS } from '../constants';
@@ -76,7 +76,7 @@ const NEGATIVE_RATING_TAGS = [
 
 const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [isOnline, setIsOnline] = useState(true);
-  const [activeTab, setActiveTab] = useState('requests');
+  const [activeTab, setActiveTab] = useState('home');
   const [requests, setRequests] = useState<JobRequest[]>(MOCK_PARTNER_REQUESTS);
   const [activeJob, setActiveJob] = useState<JobRequest | null>(null);
   
@@ -145,6 +145,19 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [isVehicleOpen, setIsVehicleOpen] = useState(false);
   
   const [editingRouteId, setEditingRouteId] = useState<number | null>(null);
+
+  // Empty Trucks State
+  const [emptyTruckType, setEmptyTruckType] = useState<'intercity' | 'intracity'>('intercity');
+  const [emptyTruckOrigin, setEmptyTruckOrigin] = useState('');
+  const [emptyTruckDestination, setEmptyTruckDestination] = useState('');
+  const [emptyTruckDate, setEmptyTruckDate] = useState('');
+  const [emptyTruckTime, setEmptyTruckTime] = useState('');
+  const [emptyTruckVehicle, setEmptyTruckVehicle] = useState('');
+  const [emptyTrucks, setEmptyTrucks] = useState(INITIAL_ROUTES);
+
+  // New Jobs State
+  const [selectedJobForDetail, setSelectedJobForDetail] = useState<JobRequest | null>(null);
+  const [newJobsFilter, setNewJobsFilter] = useState<'all' | 'nearest' | 'urgent' | 'high_price'>('all');
 
   const cityList = Object.keys(CITIES_WITH_DISTRICTS);
 
@@ -453,6 +466,140 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       </motion.div>
     </div>
   );
+  };
+  
+  const renderJobDetailModal = () => {
+    if (!selectedJobForDetail) return null;
+    const job = selectedJobForDetail;
+    const isUnlocked = unlockedJobs.includes(job.id);
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden"
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-2xl font-bold">{job.serviceType}</h2>
+              <button
+                onClick={() => setSelectedJobForDetail(null)}
+                className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-white/80">İş Detayları - #{job.id}</p>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* Location Details */}
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl">
+                <MapPin size={20} className="text-blue-600 mt-1" />
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-1">Alınacak Konum</p>
+                  <p className="font-bold text-slate-800 text-lg">{job.location}</p>
+                  <p className="text-sm text-blue-600 mt-1 flex items-center gap-1">
+                    <Navigation size={14} /> {job.distance} uzaklıkta
+                  </p>
+                </div>
+              </div>
+
+              {job.dropoffLocation && (
+                <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl">
+                  <Navigation size={20} className="text-green-600 mt-1" />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Teslim Noktası</p>
+                    <p className="font-bold text-slate-800 text-lg">{job.dropoffLocation}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Job Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <p className="text-xs font-bold text-slate-500 uppercase mb-2">Hizmet Türü</p>
+                <p className="font-bold text-slate-800">{job.serviceType}</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <p className="text-xs font-bold text-slate-500 uppercase mb-2">Araç Bilgisi</p>
+                <p className="font-bold text-slate-800">{job.vehicleInfo}</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <p className="text-xs font-bold text-slate-500 uppercase mb-2">Zaman</p>
+                <p className="font-bold text-slate-800 flex items-center gap-2">
+                  <Clock size={16} /> {job.timestamp}
+                </p>
+              </div>
+              {job.estimatedPrice && (
+                <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                  <p className="text-xs font-bold text-green-700 uppercase mb-2">Tahmini Ücret</p>
+                  <p className="font-black text-green-700 text-2xl">₺{job.estimatedPrice}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Urgency Badge */}
+            {job.urgency === 'high' && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-center gap-3">
+                <AlertTriangle size={24} className="text-red-600" />
+                <div>
+                  <p className="font-bold text-red-800">ACİL TALEP</p>
+                  <p className="text-sm text-red-600">Bu iş için hızlı yanıt bekleniyor</p>
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            {job.notes && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <p className="text-xs font-bold text-yellow-800 uppercase mb-2">Notlar</p>
+                <p className="text-sm text-slate-700">{job.notes}</p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4 border-t border-slate-200">
+              {isUnlocked ? (
+                <button
+                  onClick={() => {
+                    setSelectedJobForDetail(null);
+                    setSelectedJobForQuote(job);
+                    setQuotePrice(job.estimatedPrice?.toString() || '');
+                  }}
+                  className="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all flex items-center justify-center gap-2"
+                >
+                  <Send size={18} /> Teklif Ver
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    handleUnlockJob(job.id);
+                    setSelectedJobForDetail(null);
+                  }}
+                  disabled={credits < 1}
+                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <Unlock size={18} /> Kilidi Aç (1 Kredi)
+                </button>
+              )}
+              <button
+                onClick={() => setSelectedJobForDetail(null)}
+                className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
   };
   
   const renderQuoteModal = () => {
@@ -1174,94 +1321,1049 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
      </div>
   );
 
-  const renderSettingsTab = () => (
-     <div className="p-4 md:p-6 flex flex-col md:flex-row gap-6 h-full">
-        <div className="w-full md:w-64 shrink-0 space-y-1">
-           {[
-              { id: 'profile', label: 'Firma Bilgileri', icon: Briefcase },
-              { id: 'services', label: 'Hizmet Ayarları', icon: Wrench },
-              { id: 'documents', label: 'Belgeler', icon: FileCheck },
-              { id: 'security', label: 'Güvenlik', icon: Lock },
-           ].map(item => (
-              <button 
-                key={item.id}
-                onClick={() => setSettingsSubTab(item.id as any)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${settingsSubTab === item.id ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+  // ============== YENİ İŞLER TAB ==============
+  const renderNewJobsTab = () => {
+    const filteredNewJobs = requests.filter(req => {
+      if (newJobsFilter === 'nearest') return parseFloat(req.distance) < 10;
+      if (newJobsFilter === 'urgent') return req.urgency === 'high';
+      if (newJobsFilter === 'high_price') return req.estimatedPrice && req.estimatedPrice > 800;
+      return true;
+    });
+
+    return (
+      <div className="p-4 md:p-6 space-y-6">
+        {/* Filter Bar */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto">
+            {[
+              { id: 'all', label: 'Tümü', icon: LayoutList },
+              { id: 'nearest', label: 'En Yakın', icon: Navigation },
+              { id: 'urgent', label: 'Acil İşler', icon: AlertTriangle },
+              { id: 'high_price', label: 'Yüksek Ücret', icon: DollarSign },
+            ].map(filter => (
+              <button
+                key={filter.id}
+                onClick={() => setNewJobsFilter(filter.id as any)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                  newJobsFilter === filter.id
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300'
+                }`}
               >
-                 <item.icon size={18} /> {item.label}
+                <filter.icon size={16} /> {filter.label}
               </button>
-           ))}
+            ))}
+          </div>
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <Clock size={16} />
+            <span>{filteredNewJobs.length} Yeni İş</span>
+          </div>
         </div>
 
-        <div className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
-           {settingsSubTab === 'profile' && (
-              <div className="space-y-6">
-                 <h2 className="text-xl font-bold text-slate-800">Firma Profil Bilgileri</h2>
-                 <div className="flex items-center gap-6">
-                    <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-200 hover:border-slate-400 transition-colors">
-                       <Camera size={32} />
+        {/* Jobs Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredNewJobs.map(job => {
+            const isUnlocked = unlockedJobs.includes(job.id);
+            return (
+              <motion.div
+                key={job.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`bg-white rounded-2xl border-2 p-6 transition-all hover:shadow-xl ${
+                  isUnlocked ? 'border-green-300 bg-green-50/50' : 'border-slate-200'
+                }`}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      isUnlocked ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                    }`}>
+                      {job.serviceType.includes('Çekici') ? <Truck size={24} /> : <Wrench size={24} />}
                     </div>
                     <div>
-                       <button className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors">Logo Yükle</button>
-                       <p className="text-xs text-slate-400 mt-2">PNG, JPG (Max. 2MB)</p>
+                      <h3 className="font-bold text-slate-800">{job.serviceType}</h3>
+                      <p className="text-xs text-slate-500">#{job.id}</p>
                     </div>
+                  </div>
+                  {job.urgency === 'high' && (
+                    <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                      <AlertTriangle size={12} /> ACİL
+                    </span>
+                  )}
+                </div>
+
+                {/* Location */}
+                <div className="space-y-3 mb-4 pb-4 border-b border-slate-100">
+                  <div className="flex items-start gap-2">
+                    <MapPin size={16} className="text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-slate-500">Alınacak Konum</p>
+                      <p className="font-bold text-slate-800">{job.location}</p>
+                      <p className="text-xs text-blue-600 mt-1">📍 {job.distance} uzakta</p>
+                    </div>
+                  </div>
+                  {job.dropoffLocation && (
+                    <div className="flex items-start gap-2">
+                      <Navigation size={16} className="text-green-600 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-slate-500">Teslim Noktası</p>
+                        <p className="font-bold text-slate-800">{job.dropoffLocation}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Details */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock size={14} className="text-slate-400" />
+                    <span className="text-slate-600">{job.timestamp}</span>
+                  </div>
+                  {job.estimatedPrice && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <DollarSign size={14} className="text-green-600" />
+                      <span className="font-bold text-green-600">~₺{job.estimatedPrice}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedJobForDetail(job)}
+                    className="flex-1 py-2 border-2 border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:border-blue-300 hover:text-blue-600 transition-all"
+                  >
+                    İncele
+                  </button>
+                  {isUnlocked ? (
+                    <button
+                      onClick={() => {
+                        setSelectedJobForQuote(job);
+                        setQuotePrice(job.estimatedPrice?.toString() || '');
+                      }}
+                      className="flex-1 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Send size={16} /> Teklif Ver
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleUnlockJob(job.id)}
+                      disabled={credits < 1}
+                      className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <Unlock size={16} /> Kilidi Aç (1 Kr)
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {filteredNewJobs.length === 0 && (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Star size={40} className="text-slate-300" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-700 mb-2">Yeni İş Bulunamadı</h3>
+            <p className="text-slate-500">Seçili filtreye uygun iş talebi yok</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ============== BOŞ DÖNEN ARAÇLAR TAB ==============
+  const renderEmptyTrucksTab = () => {
+    const handleAddEmptyTruck = () => {
+      if (!emptyTruckOrigin || !emptyTruckDate || !emptyTruckTime || !emptyTruckVehicle) {
+        alert('Lütfen tüm zorunlu alanları doldurun');
+        return;
+      }
+
+      const newTruck = {
+        id: emptyTrucks.length + 1,
+        origin: emptyTruckOrigin,
+        destinations: emptyTruckType === 'intercity' ? [emptyTruckDestination] : [emptyTruckDestination],
+        date: emptyTruckDate,
+        time: emptyTruckTime,
+        vehicle: emptyTruckVehicle,
+        matches: 0,
+        type: emptyTruckType,
+      };
+
+      setEmptyTrucks([...emptyTrucks, newTruck]);
+      
+      // Reset form
+      setEmptyTruckOrigin('');
+      setEmptyTruckDestination('');
+      setEmptyTruckDate('');
+      setEmptyTruckTime('');
+      setEmptyTruckVehicle('');
+    };
+
+    const handleDeleteTruck = (id: number) => {
+      setEmptyTrucks(emptyTrucks.filter(t => t.id !== id));
+    };
+
+    return (
+      <div className="p-4 md:p-6 space-y-6">
+        {/* Type Selector */}
+        <div className="flex items-center gap-4 bg-white rounded-2xl p-2 border-2 border-slate-200 w-fit">
+          <button
+            onClick={() => setEmptyTruckType('intercity')}
+            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+              emptyTruckType === 'intercity'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            🌍 Şehirler Arası
+          </button>
+          <button
+            onClick={() => setEmptyTruckType('intracity')}
+            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+              emptyTruckType === 'intracity'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            🏙️ Şehir İçi
+          </button>
+        </div>
+
+        {/* Add Form */}
+        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-6 md:p-8 text-white shadow-2xl">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+            <Truck size={28} /> Boş Araç İlanı Oluştur
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Origin */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-white/80 uppercase">Nereden *</label>
+              <select
+                value={emptyTruckOrigin}
+                onChange={(e) => setEmptyTruckOrigin(e.target.value)}
+                className="w-full p-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder-white/50 focus:border-white focus:bg-white/20 transition-all outline-none"
+              >
+                <option value="" className="text-slate-800">Şehir Seçin</option>
+                {cityList.map(city => (
+                  <option key={city} value={city} className="text-slate-800">{city}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Destination */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-white/80 uppercase">
+                {emptyTruckType === 'intercity' ? 'Nereye *' : 'İlçe *'}
+              </label>
+              {emptyTruckType === 'intercity' ? (
+                <select
+                  value={emptyTruckDestination}
+                  onChange={(e) => setEmptyTruckDestination(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder-white/50 focus:border-white focus:bg-white/20 transition-all outline-none"
+                >
+                  <option value="" className="text-slate-800">Şehir Seçin</option>
+                  {cityList.map(city => (
+                    <option key={city} value={city} className="text-slate-800">{city}</option>
+                  ))}
+                </select>
+              ) : (
+                <select
+                  value={emptyTruckDestination}
+                  onChange={(e) => setEmptyTruckDestination(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder-white/50 focus:border-white focus:bg-white/20 transition-all outline-none"
+                  disabled={!emptyTruckOrigin}
+                >
+                  <option value="" className="text-slate-800">İlçe Seçin</option>
+                  {emptyTruckOrigin && CITIES_WITH_DISTRICTS[emptyTruckOrigin]?.map(district => (
+                    <option key={district} value={district} className="text-slate-800">{district}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Vehicle */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-white/80 uppercase">Araç Plakası *</label>
+              <select
+                value={emptyTruckVehicle}
+                onChange={(e) => setEmptyTruckVehicle(e.target.value)}
+                className="w-full p-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder-white/50 focus:border-white focus:bg-white/20 transition-all outline-none"
+              >
+                <option value="" className="text-slate-800">Araç Seçin</option>
+                {MOCK_FLEET.map(v => (
+                  <option key={v.id} value={v.plate} className="text-slate-800">
+                    {v.name} - {v.plate}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-white/80 uppercase">Tarih *</label>
+              <input
+                type="date"
+                value={emptyTruckDate}
+                onChange={(e) => setEmptyTruckDate(e.target.value)}
+                className="w-full p-3 rounded-xl bg-white/10 border-2 border-white/20 text-white focus:border-white focus:bg-white/20 transition-all outline-none"
+              />
+            </div>
+
+            {/* Time */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-white/80 uppercase">Saat *</label>
+              <input
+                type="time"
+                value={emptyTruckTime}
+                onChange={(e) => setEmptyTruckTime(e.target.value)}
+                className="w-full p-3 rounded-xl bg-white/10 border-2 border-white/20 text-white focus:border-white focus:bg-white/20 transition-all outline-none"
+              />
+            </div>
+
+            {/* Add Button */}
+            <div className="space-y-2 flex items-end">
+              <button
+                onClick={handleAddEmptyTruck}
+                className="w-full py-3 bg-white text-blue-700 rounded-xl font-bold hover:bg-blue-50 shadow-lg transition-all flex items-center justify-center gap-2"
+              >
+                <Plus size={20} /> İlan Ver
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Trucks List */}
+        <div>
+          <h3 className="font-bold text-slate-800 text-xl mb-4 flex items-center gap-2">
+            <Route size={24} className="text-blue-600" /> Son Eklenen Araçlar
+          </h3>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {emptyTrucks.slice().reverse().map(truck => (
+              <motion.div
+                key={truck.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white rounded-2xl border-2 border-slate-200 p-5 hover:shadow-lg transition-all"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600">
+                      <Truck size={24} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800">{truck.vehicle}</p>
+                      <p className="text-xs text-slate-500">
+                        {truck.type === 'intercity' ? '🌍 Şehirler Arası' : '🏙️ Şehir İçi'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteTruck(truck.id)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+
+                <div className="space-y-2 mb-4 pb-4 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={16} className="text-green-600" />
+                    <span className="font-bold text-slate-800">{truck.origin}</span>
+                    <ArrowRight size={16} className="text-slate-400" />
+                    <span className="font-bold text-slate-800">{truck.destinations[0]}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-slate-600">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={14} /> {truck.date}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={14} /> {truck.time}
+                    </span>
+                  </div>
+                </div>
+
+                {truck.matches > 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center justify-between">
+                    <span className="text-sm font-bold text-green-700">
+                      ✅ {truck.matches} Eşleşme Bulundu
+                    </span>
+                    <button className="text-xs bg-green-600 text-white px-3 py-1 rounded-lg font-bold hover:bg-green-700">
+                      Görüntüle
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+
+          {emptyTrucks.length === 0 && (
+            <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+              <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Truck size={40} className="text-slate-300" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-700 mb-2">Henüz Boş Araç İlanı Yok</h3>
+              <p className="text-slate-500">Yukarıdaki formu kullanarak ilk ilanınızı oluşturun</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // ============== ANA SAYFA TAB ==============
+  const renderHomeTab = () => (
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <Bell size={24} className="opacity-80" />
+            <span className="text-3xl font-black">{requests.length}</span>
+          </div>
+          <p className="text-sm font-bold opacity-80">Yeni İş Talebi</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <CheckCircle size={24} className="opacity-80" />
+            <span className="text-3xl font-black">{MOCK_HISTORY.filter(h => h.status === 'completed').length}</span>
+          </div>
+          <p className="text-sm font-bold opacity-80">Tamamlanan İş</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <Truck size={24} className="opacity-80" />
+            <span className="text-3xl font-black">{emptyTrucks.length}</span>
+          </div>
+          <p className="text-sm font-bold opacity-80">Boş Araç</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <Star size={24} className="opacity-80" fill="currentColor" />
+            <span className="text-3xl font-black">4.9</span>
+          </div>
+          <p className="text-sm font-bold opacity-80">Ortalama Puan</p>
+        </div>
+      </div>
+
+      {/* Recent Jobs & Empty Trucks */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Jobs */}
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+              <Star size={20} className="text-yellow-500" fill="currentColor" /> Yeni İşler
+            </h3>
+            <button
+              onClick={() => setActiveTab('newJobs')}
+              className="text-sm text-blue-600 font-bold hover:text-blue-700"
+            >
+              Tümünü Gör →
+            </button>
+          </div>
+          <div className="space-y-3">
+            {requests.slice(0, 3).map(job => (
+              <div key={job.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-blue-300 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bold text-slate-800 text-sm">{job.serviceType}</span>
+                  <span className="text-xs text-slate-500">{job.distance}</span>
+                </div>
+                <p className="text-xs text-slate-600">{job.location}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Empty Trucks */}
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+              <Truck size={20} className="text-orange-600" /> Son Eklenen Araçlar
+            </h3>
+            <button
+              onClick={() => setActiveTab('emptyTrucks')}
+              className="text-sm text-blue-600 font-bold hover:text-blue-700"
+            >
+              Tümünü Gör →
+            </button>
+          </div>
+          <div className="space-y-3">
+            {emptyTrucks.slice(0, 3).map(truck => (
+              <div key={truck.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-orange-300 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bold text-slate-800 text-sm">{truck.vehicle}</span>
+                  <span className="text-xs text-slate-500">{truck.date}</span>
+                </div>
+                <p className="text-xs text-slate-600">
+                  {truck.origin} → {truck.destinations[0]}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-8 text-white">
+        <h3 className="text-2xl font-bold mb-6">Hızlı İşlemler</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button
+            onClick={() => setActiveTab('newJobs')}
+            className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 transition-all text-center"
+          >
+            <Star size={32} className="mx-auto mb-2 text-yellow-400" />
+            <p className="text-sm font-bold">Yeni İşler</p>
+          </button>
+          <button
+            onClick={() => setActiveTab('emptyTrucks')}
+            className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 transition-all text-center"
+          >
+            <Truck size={32} className="mx-auto mb-2 text-orange-400" />
+            <p className="text-sm font-bold">Boş Araç Ekle</p>
+          </button>
+          <button
+            onClick={() => setShowAddCreditModal(true)}
+            className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 transition-all text-center"
+          >
+            <Coins size={32} className="mx-auto mb-2 text-green-400" />
+            <p className="text-sm font-bold">Kredi Yükle</p>
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 transition-all text-center"
+          >
+            <Settings size={32} className="mx-auto mb-2 text-purple-400" />
+            <p className="text-sm font-bold">Ayarlar</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderSettingsTab = () => (
+     <div className="p-4 md:p-6 space-y-6">
+        {/* Profil Özeti Kartları */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+           {/* Firma Adı Kartı */}
+           <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Briefcase size={20} />
                  </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                       <label className="text-xs font-bold text-slate-500">Firma Adı</label>
-                       <input type="text" defaultValue="Yılmaz Oto Kurtarma Ltd. Şti." className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                       <label className="text-xs font-bold text-slate-500">Vergi Numarası</label>
-                       <input type="text" defaultValue="1234567890" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                       <label className="text-xs font-bold text-slate-500">E-Posta</label>
-                       <input type="email" defaultValue="info@yilmazoto.com" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                       <label className="text-xs font-bold text-slate-500">Telefon</label>
-                       <input type="tel" defaultValue="+90 555 123 45 67" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                 </div>
-                 <div className="pt-4 border-t border-slate-100 flex justify-end">
-                    <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">Değişiklikleri Kaydet</button>
+                 <div className="flex-1">
+                    <p className="text-xs font-bold opacity-80">Firma Adı</p>
+                    <p className="text-lg font-black">Yılmaz Oto</p>
                  </div>
               </div>
-           )}
-           {settingsSubTab === 'services' && (
-              <div className="space-y-6">
-                 <h2 className="text-xl font-bold text-slate-800">Hizmet & Fiyat Ayarları</h2>
-                 <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-xl flex gap-3 text-sm text-yellow-800">
-                    <AlertTriangle className="shrink-0" size={20} />
-                    <p>Burada belirlediğiniz taban fiyatlar müşteriye gösterilen "Başlangıç Fiyatı"dır. Kesin fiyat teklif sırasında belirlenir.</p>
+           </div>
+
+           {/* İletişim Kartı */}
+           <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Phone size={20} />
                  </div>
-                 <div className="space-y-4">
-                    {['Oto Çekici', 'Akü Takviye', 'Lastik Değişimi', 'Yakıt İkmali', 'Oto Çilingir'].map(srv => (
-                       <div key={srv} className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
-                          <div className="flex items-center gap-3">
-                             <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                             <span className="font-bold text-slate-700">{srv}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                             <span className="text-sm text-slate-400">Taban Fiyat:</span>
-                             <div className="relative w-24">
-                                <input type="number" defaultValue="500" className="w-full p-2 pl-6 bg-slate-50 rounded-lg border border-slate-200 text-sm font-bold outline-none" />
-                                <span className="absolute left-2 top-2 text-slate-400 text-xs">₺</span>
+                 <div className="flex-1">
+                    <p className="text-xs font-bold opacity-80">İletişim</p>
+                    <p className="text-sm font-bold">+90 555 123 45 67</p>
+                    <p className="text-xs opacity-80 truncate">info@yilmazoto.com</p>
+                 </div>
+              </div>
+           </div>
+
+           {/* Kredi Kartı */}
+           <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-2xl p-6 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <DollarSign size={20} />
+                 </div>
+                 <div className="flex-1">
+                    <p className="text-xs font-bold opacity-80">Kredi Hakkı</p>
+                    <p className="text-2xl font-black">{credits}</p>
+                 </div>
+              </div>
+           </div>
+
+           {/* Puan Kartı */}
+           <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-6 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Star size={20} fill="currentColor" />
+                 </div>
+                 <div className="flex-1">
+                    <p className="text-xs font-bold opacity-80">Firma Puanı</p>
+                    <div className="flex items-center gap-2">
+                       <p className="text-2xl font-black">4.9</p>
+                       <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                             <Star key={i} size={12} fill={i < 5 ? "currentColor" : "none"} className="opacity-80" />
+                          ))}
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        {/* Ana İçerik: Sidebar + Detay */}
+        <div className="flex flex-col md:flex-row gap-6">
+           {/* Sol Sidebar - Menü */}
+           <div className="w-full md:w-64 shrink-0 space-y-1">
+              {[
+                 { id: 'profile', label: 'Firma Bilgileri', icon: Briefcase },
+                 { id: 'notifications', label: 'Bildirim Ayarları', icon: Bell },
+                 { id: 'security', label: 'Şifre Değiştir', icon: Lock },
+                 { id: 'company', label: 'Şirket Bilgileri', icon: Building },
+                 { id: 'vehicles', label: 'Araç Bilgileri', icon: Truck },
+                 { id: 'contact', label: 'İletişim Bilgileri', icon: Phone },
+                 { id: 'services', label: 'Hizmet Ayarları', icon: Wrench },
+                 { id: 'documents', label: 'Belgeler', icon: FileCheck },
+              ].map(item => (
+                 <button 
+                   key={item.id}
+                   onClick={() => setSettingsSubTab(item.id as any)}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${settingsSubTab === item.id ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-100'}`}
+                 >
+                    <item.icon size={18} /> {item.label}
+                 </button>
+              ))}
+           </div>
+
+           {/* Sağ İçerik Alanı */}
+           <div className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
+              {settingsSubTab === 'profile' && (
+                 <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                       <h2 className="text-2xl font-bold text-slate-800">Firma Profil Bilgileri</h2>
+                       <div className="flex items-center gap-2 bg-green-50 text-green-600 px-3 py-1 rounded-full text-sm font-bold">
+                          <CheckCircle2 size={16} /> Doğrulanmış
+                       </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-6 p-6 bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl border border-slate-200">
+                       <div className="w-24 h-24 rounded-2xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-50 hover:border-blue-400 transition-all group shadow-md">
+                          <Camera size={32} className="group-hover:text-blue-600 transition-colors" />
+                       </div>
+                       <div className="flex-1">
+                          <h3 className="font-bold text-slate-800 mb-1">Firma Logosu</h3>
+                          <p className="text-sm text-slate-500 mb-3">Profesyonel bir görünüm için firma logonuzu yükleyin</p>
+                          <button className="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">Logo Yükle</button>
+                          <p className="text-xs text-slate-400 mt-2">PNG, JPG (Max. 2MB)</p>
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Firma Adı *</label>
+                          <input type="text" defaultValue="Yılmaz Oto Kurtarma Ltd. Şti." className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vergi/TC Numarası *</label>
+                          <input type="text" defaultValue="1234567890" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">E-Posta Adresi *</label>
+                          <input type="email" defaultValue="info@yilmazoto.com" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Telefon Numarası *</label>
+                          <input type="tel" defaultValue="+90 555 123 45 67" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Adres</label>
+                          <textarea rows={3} defaultValue="Atatürk Cad. No: 123, Kadıköy / İstanbul" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"></textarea>
+                       </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                       <button className="px-6 py-3 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 transition-all">İptal</button>
+                       <button className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+                          <Check size={18} /> Değişiklikleri Kaydet
+                       </button>
+                    </div>
+                 </div>
+              )}
+
+              {settingsSubTab === 'notifications' && (
+                 <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-slate-800">Bildirim Tercihleri</h2>
+                    <p className="text-sm text-slate-500">Hangi durumlarda bildirim almak istediğinizi seçin</p>
+
+                    <div className="space-y-4">
+                       {/* Yeni İş Bildirimleri */}
+                       <div className="p-5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
+                          <div className="flex items-center justify-between mb-4">
+                             <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                                   <Bell size={20} />
+                                </div>
+                                <div>
+                                   <h3 className="font-bold text-slate-800">Yeni İş Talepleri</h3>
+                                   <p className="text-xs text-slate-600">Konumunuza yakın yeni işler için anlık bildirim</p>
+                                </div>
                              </div>
                           </div>
+                          <div className="space-y-3 ml-15">
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-blue-50 transition-colors">
+                                <span className="text-sm font-bold text-slate-700">Push Bildirimi</span>
+                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                             </label>
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-blue-50 transition-colors">
+                                <span className="text-sm font-bold text-slate-700">SMS Bildirimi</span>
+                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                             </label>
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-blue-50 transition-colors">
+                                <span className="text-sm font-bold text-slate-700">E-posta Bildirimi</span>
+                                <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                             </label>
+                          </div>
                        </div>
-                    ))}
+
+                       {/* Teklif Durumu */}
+                       <div className="p-5 bg-gradient-to-r from-green-50 to-green-100 rounded-2xl border border-green-200">
+                          <div className="flex items-center justify-between mb-4">
+                             <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                                   <CheckCircle2 size={20} />
+                                </div>
+                                <div>
+                                   <h3 className="font-bold text-slate-800">Teklif Kabul/Red</h3>
+                                   <p className="text-xs text-slate-600">Tekliflerinizin durumu değiştiğinde</p>
+                                </div>
+                             </div>
+                          </div>
+                          <div className="space-y-3 ml-15">
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-green-50 transition-colors">
+                                <span className="text-sm font-bold text-slate-700">Push Bildirimi</span>
+                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-green-600 focus:ring-green-500" />
+                             </label>
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-green-50 transition-colors">
+                                <span className="text-sm font-bold text-slate-700">SMS Bildirimi</span>
+                                <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-green-600 focus:ring-green-500" />
+                             </label>
+                          </div>
+                       </div>
+
+                       {/* Ödeme Bildirimleri */}
+                       <div className="p-5 bg-gradient-to-r from-purple-50 to-purple-100 rounded-2xl border border-purple-200">
+                          <div className="flex items-center justify-between mb-4">
+                             <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                                   <DollarSign size={20} />
+                                </div>
+                                <div>
+                                   <h3 className="font-bold text-slate-800">Ödeme & Cüzdan</h3>
+                                   <p className="text-xs text-slate-600">Ödeme alındığında veya kredi değişiminde</p>
+                                </div>
+                             </div>
+                          </div>
+                          <div className="space-y-3 ml-15">
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-purple-50 transition-colors">
+                                <span className="text-sm font-bold text-slate-700">Push Bildirimi</span>
+                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-purple-600 focus:ring-purple-500" />
+                             </label>
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-purple-50 transition-colors">
+                                <span className="text-sm font-bold text-slate-700">E-posta Bildirimi</span>
+                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-purple-600 focus:ring-purple-500" />
+                             </label>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex justify-end">
+                       <button className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+                          <Check size={18} /> Tercihleri Kaydet
+                       </button>
+                    </div>
                  </div>
-              </div>
-           )}
-           {/* Placeholder for other tabs */}
-           {(settingsSubTab === 'documents' || settingsSubTab === 'security') && (
-              <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-                 <Lock size={48} className="mb-4 opacity-20" />
-                 <p>Bu alan şu an düzenlenemez.</p>
-              </div>
-           )}
+              )}
+
+              {settingsSubTab === 'security' && (
+                 <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                       <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-600">
+                          <Lock size={24} />
+                       </div>
+                       <div>
+                          <h2 className="text-2xl font-bold text-slate-800">Şifre Değiştir</h2>
+                          <p className="text-sm text-slate-500">Hesap güvenliğiniz için düzenli olarak şifrenizi güncelleyin</p>
+                       </div>
+                    </div>
+
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex gap-3 text-sm text-yellow-800">
+                       <AlertTriangle className="shrink-0 mt-0.5" size={18} />
+                       <div>
+                          <p className="font-bold mb-1">Güçlü Şifre Önerileri:</p>
+                          <ul className="text-xs space-y-1 ml-4 list-disc">
+                             <li>En az 8 karakter uzunluğunda olmalı</li>
+                             <li>Büyük ve küçük harf içermeli</li>
+                             <li>En az 1 rakam ve 1 özel karakter bulunmalı</li>
+                          </ul>
+                       </div>
+                    </div>
+
+                    <div className="space-y-4 max-w-md">
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mevcut Şifre *</label>
+                          <input type="password" placeholder="••••••••" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Yeni Şifre *</label>
+                          <input type="password" placeholder="••••••••" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Yeni Şifre Tekrar *</label>
+                          <input type="password" placeholder="••••••••" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                       <button className="px-6 py-3 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 transition-all">İptal</button>
+                       <button className="bg-red-600 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-red-700 shadow-lg shadow-red-200 transition-all flex items-center gap-2">
+                          <Lock size={18} /> Şifreyi Güncelle
+                       </button>
+                    </div>
+                 </div>
+              )}
+
+              {settingsSubTab === 'company' && (
+                 <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-slate-800">Şirket Bilgileri</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ticaret Sicil No</label>
+                          <input type="text" placeholder="12345/6789" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mersis No</label>
+                          <input type="text" placeholder="0123456789012345" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vergi Dairesi</label>
+                          <input type="text" placeholder="Kadıköy" defaultValue="Kadıköy" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Faaliyet Alanı</label>
+                          <select className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                             <option>Oto Kurtarma & Yol Yardım</option>
+                             <option>Çekici Hizmeti</option>
+                             <option>Genel Araç Servisi</option>
+                          </select>
+                       </div>
+                       <div className="space-y-2 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kuruluş Yılı</label>
+                          <input type="number" placeholder="2015" defaultValue="2015" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                    </div>
+                    <div className="pt-4 border-t border-slate-100 flex justify-end">
+                       <button className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+                          <Check size={18} /> Bilgileri Kaydet
+                       </button>
+                    </div>
+                 </div>
+              )}
+
+              {settingsSubTab === 'vehicles' && (
+                 <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                       <h2 className="text-2xl font-bold text-slate-800">Araç Filosu Bilgileri</h2>
+                       <button className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+                          <Plus size={16} /> Yeni Araç Ekle
+                       </button>
+                    </div>
+                    <p className="text-sm text-slate-500">Filo yönetimi için "Filo Yönetimi" sekmesini kullanın. Burada sadece resmi kayıtlı araçlarınızı listeleyebilirsiniz.</p>
+                    
+                    <div className="space-y-3">
+                       {MOCK_FLEET.map(vehicle => (
+                          <div key={vehicle.id} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl hover:shadow-md transition-all">
+                             <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                   <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                                      <Truck size={24} />
+                                   </div>
+                                   <div>
+                                      <h3 className="font-bold text-slate-800">{vehicle.name}</h3>
+                                      <p className="text-sm text-slate-500">{vehicle.plate}</p>
+                                      <div className="flex items-center gap-2 mt-1">
+                                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${vehicle.status === 'active' ? 'bg-green-100 text-green-700' : vehicle.status === 'maintenance' ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-500'}`}>
+                                            {vehicle.status === 'active' ? 'Aktif' : vehicle.status === 'maintenance' ? 'Bakımda' : 'Pasif'}
+                                         </span>
+                                      </div>
+                                   </div>
+                                </div>
+                                <button className="text-blue-600 hover:text-blue-700 font-bold text-sm">Düzenle</button>
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+              )}
+
+              {settingsSubTab === 'contact' && (
+                 <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-slate-800">İletişim Bilgileri</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Yetkili Kişi Adı *</label>
+                          <input type="text" defaultValue="Ahmet Yılmaz" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cep Telefonu *</label>
+                          <input type="tel" defaultValue="+90 555 123 45 67" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sabit Telefon</label>
+                          <input type="tel" placeholder="+90 216 XXX XX XX" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Acil Durum Telefonu</label>
+                          <input type="tel" placeholder="+90 5XX XXX XX XX" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">E-posta Adresi *</label>
+                          <input type="email" defaultValue="info@yilmazoto.com" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+                       </div>
+                       <div className="space-y-2 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">İş Yeri Adresi *</label>
+                          <textarea rows={3} defaultValue="Atatürk Cad. No: 123, Kadıköy / İstanbul" className="w-full p-3 bg-slate-50 rounded-xl border-2 border-slate-200 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"></textarea>
+                       </div>
+                    </div>
+                    <div className="pt-4 border-t border-slate-100 flex justify-end">
+                       <button className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+                          <Check size={18} /> Bilgileri Kaydet
+                       </button>
+                    </div>
+                 </div>
+              )}
+
+              {settingsSubTab === 'services' && (
+                 <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-slate-800">Hizmet & Fiyat Ayarları</h2>
+                    <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-xl flex gap-3 text-sm text-yellow-800">
+                       <AlertTriangle className="shrink-0" size={20} />
+                       <p>Burada belirlediğiniz taban fiyatlar müşteriye gösterilen "Başlangıç Fiyatı"dır. Kesin fiyat teklif sırasında belirlenir.</p>
+                    </div>
+                    <div className="space-y-4">
+                       {['Oto Çekici', 'Akü Takviye', 'Lastik Değişimi', 'Yakıt İkmali', 'Oto Çilingir'].map(srv => (
+                          <div key={srv} className="flex items-center justify-between p-4 border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-all">
+                             <div className="flex items-center gap-3">
+                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                <span className="font-bold text-slate-700">{srv}</span>
+                             </div>
+                             <div className="flex items-center gap-2">
+                                <span className="text-sm text-slate-400">Taban Fiyat:</span>
+                                <div className="relative w-28">
+                                   <input type="number" defaultValue="500" className="w-full p-2 pl-7 bg-slate-50 rounded-lg border-2 border-slate-200 text-sm font-bold outline-none focus:border-blue-500 transition-all" />
+                                   <span className="absolute left-2 top-2 text-slate-400 text-sm font-bold">₺</span>
+                                </div>
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                    <div className="pt-4 border-t border-slate-100 flex justify-end">
+                       <button className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+                          <Check size={18} /> Ayarları Kaydet
+                       </button>
+                    </div>
+                 </div>
+              )}
+
+              {settingsSubTab === 'documents' && (
+                 <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                       <h2 className="text-2xl font-bold text-slate-800">Belgeler & Dökümanlar</h2>
+                       <button className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+                          <Upload size={16} /> Belge Yükle
+                       </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       {/* Ticari Sicil */}
+                       <div className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                          <div className="flex items-center gap-3 mb-2">
+                             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                                <FileCheck size={20} />
+                             </div>
+                             <div>
+                                <h3 className="font-bold text-slate-800">Ticaret Sicil Belgesi</h3>
+                                <p className="text-xs text-slate-500">PDF, JPG (Max. 5MB)</p>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-3">
+                             <CheckCircle2 size={16} className="text-green-600" />
+                             <span className="text-xs font-bold text-green-600">Yüklendi (15.01.2024)</span>
+                          </div>
+                       </div>
+
+                       {/* İmza Sirküleri */}
+                       <div className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                          <div className="flex items-center gap-3 mb-2">
+                             <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                                <FileCheck size={20} />
+                             </div>
+                             <div>
+                                <h3 className="font-bold text-slate-800">İmza Sirküleri</h3>
+                                <p className="text-xs text-slate-500">PDF, JPG (Max. 5MB)</p>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-3">
+                             <Upload size={16} className="text-slate-400" />
+                             <span className="text-xs font-bold text-slate-400">Henüz yüklenmedi</span>
+                          </div>
+                       </div>
+
+                       {/* Araç Ruhsatları */}
+                       <div className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                          <div className="flex items-center gap-3 mb-2">
+                             <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600">
+                                <Truck size={20} />
+                             </div>
+                             <div>
+                                <h3 className="font-bold text-slate-800">Araç Ruhsatları</h3>
+                                <p className="text-xs text-slate-500">Her araç için ayrı</p>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-3">
+                             <CheckCircle2 size={16} className="text-green-600" />
+                             <span className="text-xs font-bold text-green-600">2 Belge Yüklendi</span>
+                          </div>
+                       </div>
+
+                       {/* Sigorta Poliçesi */}
+                       <div className="p-5 border-2 border-dashed border-slate-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                          <div className="flex items-center gap-3 mb-2">
+                             <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
+                                <ShieldCheck size={20} />
+                             </div>
+                             <div>
+                                <h3 className="font-bold text-slate-800">Sorumluluk Sigortası</h3>
+                                <p className="text-xs text-slate-500">Aktif poliçe gerekli</p>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-3">
+                             <CheckCircle2 size={16} className="text-green-600" />
+                             <span className="text-xs font-bold text-green-600">Geçerli (31.12.2025)</span>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                       <h3 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                          <Info size={18} /> Önemli Bilgi
+                       </h3>
+                       <p className="text-sm text-blue-700">Tüm belgelerinizin güncel ve okunaklı olduğundan emin olun. Eksik belge durumunda hesabınız askıya alınabilir.</p>
+                    </div>
+                 </div>
+              )}
+           </div>
         </div>
      </div>
   );
@@ -1279,8 +2381,11 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
           <nav className="mt-8 px-2 space-y-2">
             {[
+              { id: 'home', label: 'Ana Sayfa', icon: LayoutDashboard },
+              { id: 'newJobs', label: 'Yeni İşler', icon: Star },
               { id: 'requests', label: 'Talep Havuzu', icon: Bell },
               { id: 'active', label: 'Aktif Görev', icon: Navigation },
+              { id: 'emptyTrucks', label: 'Boş Dönen Araçlar', icon: Truck },
               { id: 'service_routes', label: 'Hizmet Rotaları', icon: Route },
               { id: 'offer_history', label: 'Teklif Geçmişim', icon: FileText },
               { id: 'payments', label: 'Ödemeler & Komisyon', icon: Receipt },
@@ -1330,8 +2435,11 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         {/* TOP HEADER */}
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-10 sticky top-0 z-20">
           <h1 className="text-lg lg:text-xl font-bold text-slate-800 flex items-center gap-2 lg:gap-3 truncate">
+            {activeTab === 'home' && '🏠 Dashboard Ana Sayfa'}
+            {activeTab === 'newJobs' && '⭐ Yeni İş Talepleri'}
             {activeTab === 'requests' && 'İş Talepleri'}
             {activeTab === 'active' && 'Aktif Operasyon'}
+            {activeTab === 'emptyTrucks' && '🚛 Boş Dönen Araçlar'}
             {activeTab === 'offer_history' && 'Teklif Geçmişim'}
             {activeTab === 'payments' && 'Ödemeler & Komisyon'}
             {activeTab === 'documents' && 'Belgelerim'}
@@ -1563,6 +2671,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                )}
             </div>
           )}
+          {activeTab === 'home' && renderHomeTab()}
+          {activeTab === 'newJobs' && renderNewJobsTab()}
+          {activeTab === 'emptyTrucks' && renderEmptyTrucksTab()}
           {activeTab === 'offer_history' && <PartnerOfferHistory />}
           {activeTab === 'payments' && <PartnerPayments />}
           {activeTab === 'documents' && <PartnerDocuments />}
@@ -1579,6 +2690,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       <AnimatePresence>{selectedJobForQuote && renderQuoteModal()}</AnimatePresence>
       <AnimatePresence>{selectedRequestForOffer && renderCustomerOfferModal()}</AnimatePresence>
       <AnimatePresence>{showRatingModal && renderRatingModal()}</AnimatePresence>
+      <AnimatePresence>{selectedJobForDetail && renderJobDetailModal()}</AnimatePresence>
     </div>
   );
 };

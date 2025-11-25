@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Search, Navigation, ChevronDown, Check, XCircle, ChevronLeft, Car, Truck, BatteryCharging, Disc, Fuel } from 'lucide-react';
+import { MapPin, Search, Navigation, ChevronDown, Check, XCircle, ChevronLeft, Car, Truck, BatteryCharging, Disc, Fuel, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SERVICES, CITIES_WITH_DISTRICTS } from '../constants';
 
@@ -17,6 +17,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
   const [locationStep, setLocationStep] = useState<'city' | 'district'>('city');
   const [locationSearch, setLocationSearch] = useState('');
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [locationLoadingText, setLocationLoadingText] = useState('Konum alınıyor...');
   
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -104,11 +105,13 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
 
     console.log('🌍 Konum servisi isteniyor (Hero)...');
     setIsLoadingLocation(true);
+    setLocationLoadingText('GPS konumunuz alınıyor...');
     setIsLocationOpen(false);
     
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         console.log('✅ Konum alındı:', position.coords);
+        setLocationLoadingText('Adres bilgileri çözülüyor...');
         const { latitude, longitude } = position.coords;
         
         try {
@@ -128,6 +131,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
           
           const data = await response.json();
           console.log('📍 Geocoding sonucu:', data);
+          setLocationLoadingText('Şehir ve ilçe eşleştiriliyor...');
           
           const address = data.address || {};
           let city = address.province || address.state || address.city || address.town;
@@ -151,19 +155,22 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
             
             if (matchedDistrict) {
               console.log('✅ İlçe eşleşti:', matchedDistrict);
+              setLocationLoadingText('Konum başarıyla belirlendi!');
               setTimeout(() => {
                 handleSelectDistrict(matchedDistrict);
-              }, 300);
+                setIsLoadingLocation(false);
+              }, 500);
             } else {
               console.warn('⚠️ İlçe eşleşmedi, şehir seçildi');
               setLocationStep('district');
               setIsLocationOpen(true);
+              setIsLoadingLocation(false);
             }
           } else {
             console.warn('⚠️ Şehir sistemde bulunamadı:', city);
+            setIsLoadingLocation(false);
+            setIsLocationOpen(true);
           }
-          
-          setIsLoadingLocation(false);
         } catch (error) {
           console.error('❌ Reverse geocoding error:', error);
           alert('Konum bilgisi alınamadı. Lütfen manuel olarak seçin.');
@@ -624,6 +631,37 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
 
         </div>
       </div>
+      
+      {/* Loading Overlay - Konum Yükleme Ekranı */}
+      <AnimatePresence>
+        {isLoadingLocation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 20 }}
+              className="bg-white rounded-3xl p-10 flex flex-col items-center shadow-2xl max-w-md mx-4"
+            >
+              <div className="relative mb-6">
+                <Loader2 className="animate-spin text-brand-orange" size={64} strokeWidth={2.5} />
+                <div className="absolute inset-0 rounded-full border-4 border-orange-100 animate-pulse"></div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+                Konumunuz Belirleniyor
+              </h3>
+              <p className="text-lg text-gray-600 text-center">
+                {locationLoadingText}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Add Tailwind keyframes for the moving road effect */}
       <style>{`
