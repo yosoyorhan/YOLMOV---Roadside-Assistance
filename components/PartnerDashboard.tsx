@@ -239,6 +239,13 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [isCompressingLogo, setIsCompressingLogo] = useState(false);
   const [isCompressingProfile, setIsCompressingProfile] = useState(false);
 
+  // Document Upload Modal State
+  const [showDocumentUploadModal, setShowDocumentUploadModal] = useState(false);
+  const [selectedDocType, setSelectedDocType] = useState('');
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [documentUploadError, setDocumentUploadError] = useState<string | null>(null);
+  const documentInputRef = useRef<HTMLInputElement | null>(null);
+
   // Support State - Yeni Talep Oluşturma
   const [showNewTicketPage, setShowNewTicketPage] = useState(false);
   const [ticketSubject, setTicketSubject] = useState('');
@@ -248,6 +255,60 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   // Fleet State - Yeni Araç Ekleme
   const [showNewVehiclePage, setShowNewVehiclePage] = useState(false);
   const [vehiclePlate, setVehiclePlate] = useState('');
+
+  // Document Upload Handler
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedDocType) {
+      setDocumentUploadError('Lütfen önce belge türünü seçin.');
+      return;
+    }
+    if (!e.target.files || !e.target.files.length) {
+      return;
+    }
+    
+    const file = e.target.files[0];
+    
+    // Dosya boyutu kontrolü (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setDocumentUploadError('Dosya boyutu 5MB\'den büyük olamaz.');
+      if (documentInputRef.current) {
+        documentInputRef.current.value = '';
+      }
+      return;
+    }
+    
+    setUploadingDocument(true);
+    setDocumentUploadError(null);
+    
+    try {
+      let finalFile = file;
+      
+      // Eğer görsel dosyası ise sıkıştır
+      if (isImageFile(file)) {
+        const result = await compressImage(file);
+        finalFile = result.compressedFile;
+        console.log(`📄 Belge sıkıştırıldı: ${result.compressionRatio.toFixed(1)}% küçültüldü`);
+      }
+      
+      // Simüle upload
+      setTimeout(() => {
+        alert(`✅ ${selectedDocType} başarıyla yüklendi!\n\nDosya: ${finalFile.name}\nBoyut: ${(finalFile.size / 1024 / 1024).toFixed(2)} MB\n\nBelgeniz admin onayına gönderildi.`);
+        setUploadingDocument(false);
+        setShowDocumentUploadModal(false);
+        setSelectedDocType('');
+        if (documentInputRef.current) {
+          documentInputRef.current.value = '';
+        }
+      }, 1500);
+    } catch (error) {
+      console.error('Belge yükleme hatası:', error);
+      setDocumentUploadError('Belge yüklenirken hata oluştu. Lütfen tekrar deneyin.');
+      setUploadingDocument(false);
+      if (documentInputRef.current) {
+        documentInputRef.current.value = '';
+      }
+    }
+  };
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleType, setVehicleType] = useState('');
   const [vehicleDriver, setVehicleDriver] = useState('');
@@ -864,6 +925,168 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                 className="w-full py-3 text-sm text-slate-500 hover:text-slate-700 transition-colors"
               >
                 Kapat
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+  
+  const renderDocumentUploadModal = () => {
+    const DOCUMENT_TYPES = [
+      { value: 'trade_registry', label: 'Ticaret Sicil Belgesi' },
+      { value: 'signature', label: 'İmza Sirküleri' },
+      { value: 'vehicle_registration', label: 'Araç Ruhsatı' },
+      { value: 'insurance', label: 'Sorumluluk Sigortası' },
+      { value: 'tax_plate', label: 'Vergi Levhası' },
+      { value: 'other', label: 'Diğer' },
+    ];
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} 
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden"
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Upload size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Belge Yükle</h2>
+                  <p className="text-sm text-blue-100">Evraklarınızı yükleyin</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDocumentUploadModal(false);
+                  setSelectedDocType('');
+                  setDocumentUploadError(null);
+                  if (documentInputRef.current) {
+                    documentInputRef.current.value = '';
+                  }
+                }}
+                className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* Document Type Selection */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Belge Türü <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedDocType}
+                onChange={(e) => {
+                  setSelectedDocType(e.target.value);
+                  setDocumentUploadError(null);
+                }}
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium"
+              >
+                <option value="">Belge türünü seçin</option>
+                {DOCUMENT_TYPES.map(type => (
+                  <option key={type.value} value={type.label}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* File Upload Area */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Dosya Seçin
+              </label>
+              <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
+                selectedDocType 
+                  ? 'border-blue-300 bg-blue-50 hover:bg-blue-100 cursor-pointer' 
+                  : 'border-slate-200 bg-slate-50 cursor-not-allowed opacity-60'
+              }`}>
+                {uploadingDocument ? (
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <Loader2 size={40} className="text-blue-600 animate-spin" />
+                    <p className="text-sm font-bold text-blue-700">Yükleniyor...</p>
+                    <p className="text-xs text-slate-500">Lütfen bekleyin</p>
+                  </div>
+                ) : (
+                  <label className={selectedDocType ? 'cursor-pointer' : 'cursor-not-allowed'}>
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
+                        <FileText size={32} className="text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900 mb-1">
+                          Dosya seçmek için tıklayın
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          PDF, JPG, PNG • Maksimum 5MB
+                        </p>
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleDocumentUpload}
+                      disabled={!selectedDocType || uploadingDocument}
+                      className="hidden"
+                      ref={documentInputRef}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {documentUploadError && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
+                <AlertTriangle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-red-700 mb-1">Hata</p>
+                  <p className="text-xs text-red-600">{documentUploadError}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <Info size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-blue-800 mb-1">Önemli Notlar</p>
+                  <ul className="text-xs text-blue-700 space-y-1">
+                    <li>• Belgeleriniz 24 saat içinde incelenecektir</li>
+                    <li>• Fotoğraflar net ve okunaklı olmalıdır</li>
+                    <li>• Geçerlilik tarihi güncel olmalıdır</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDocumentUploadModal(false);
+                  setSelectedDocType('');
+                  setDocumentUploadError(null);
+                  if (documentInputRef.current) {
+                    documentInputRef.current.value = '';
+                  }
+                }}
+                className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"
+              >
+                İptal
               </button>
             </div>
           </div>
@@ -3453,7 +3676,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                  <div className="space-y-6">
                     <div className="flex items-center justify-between">
                        <h2 className="text-2xl font-bold text-slate-800">Belgeler & Dökümanlar</h2>
-                       <button className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+                       <button 
+                          onClick={() => setShowDocumentUploadModal(true)}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2"
+                       >
                           <Upload size={16} /> Belge Yükle
                        </button>
                     </div>
@@ -3734,6 +3960,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       <AnimatePresence>{showRatingModal && renderRatingModal()}</AnimatePresence>
       <AnimatePresence>{selectedJobForDetail && renderJobDetailModal()}</AnimatePresence>
       <AnimatePresence>{showNavigationModal && renderNavigationModal()}</AnimatePresence>
+      <AnimatePresence>{showDocumentUploadModal && renderDocumentUploadModal()}</AnimatePresence>
     </div>
   );
 };
