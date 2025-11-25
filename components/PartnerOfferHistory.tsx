@@ -309,16 +309,22 @@ export const PartnerOfferHistory: React.FC = () => {
 
       {/* Detail Modal */}
       {selectedOffer && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedOffer(null)}>
-          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
+        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[100]" onClick={() => setSelectedOffer(null)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-2xl p-6 md:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900">Teklif Detayları</h2>
-              <button onClick={() => setSelectedOffer(null)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200">
-                <XCircle size={20} />
+              <button onClick={() => setSelectedOffer(null)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <X size={20} />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <span className="text-sm text-gray-600">Teklif ID</span>
                 <span className="font-mono font-semibold">{selectedOffer.id}</span>

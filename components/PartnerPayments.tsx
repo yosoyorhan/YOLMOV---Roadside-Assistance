@@ -96,12 +96,27 @@ export const PartnerPayments: React.FC = () => {
   const [filterType, setFilterType] = useState<'all' | 'earning' | 'commission' | 'fee'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'pending' | 'failed'>('all');
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredPayments = MOCK_PAYMENTS.filter(payment => {
+    const paymentDate = new Date(payment.date);
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    if (start && paymentDate < start) return false;
+    if (end && paymentDate > end) return false;
+
     const matchesType = filterType === 'all' || payment.type === filterType;
     const matchesStatus = filterStatus === 'all' || payment.status === filterStatus;
     return matchesType && matchesStatus;
   });
+
+  const paginatedPayments = filteredPayments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
 
   // Hesaplamalar (Komisyon yok - sadece net kazanç)
   const totalEarnings = MOCK_PAYMENTS
@@ -155,16 +170,6 @@ export const PartnerPayments: React.FC = () => {
           <p className="text-xs text-green-100 mt-1">{completedJobsCount} İş Tamamlandı</p>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <Wallet size={24} />
-            </div>
-            <Clock size={20} className="opacity-60" />
-          </div>
-          <p className="text-sm text-blue-100 mb-1">Bekleyen Ödemeler</p>
-          <p className="text-3xl font-bold">{pendingPayments.toLocaleString()} ₺</p>
-        </div>
 
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-5 text-white shadow-lg">
           <div className="flex items-center justify-between mb-3">
@@ -211,13 +216,13 @@ export const PartnerPayments: React.FC = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="flex items-center gap-2">
             <Filter size={20} className="text-gray-400" />
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as any)}
-              className="px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="all">Tüm İşlemler</option>
               <option value="earning">Kazançlar</option>
@@ -230,7 +235,7 @@ export const PartnerPayments: React.FC = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="all">Tüm Durumlar</option>
               <option value="completed">Tamamlandı</option>
@@ -239,12 +244,50 @@ export const PartnerPayments: React.FC = () => {
             </select>
           </div>
 
-          <button className="ml-auto px-6 py-2.5 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            <span className="text-gray-500">-</span>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+          </div>
+
+          <button
+            onClick={() => setShowDownloadModal(true)}
+            className="w-full md:w-auto px-6 py-2.5 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2"
+          >
             <Download size={18} />
             Rapor İndir
           </button>
         </div>
       </div>
+
+      {showDownloadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl p-6 max-w-md w-full"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Rapor İndir</h2>
+            <p className="text-sm text-gray-600 mb-6">Lütfen indirmek istediğiniz rapor formatını seçin.</p>
+            <div className="space-y-3">
+              <button className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-green-100 text-green-800 rounded-lg font-semibold hover:bg-green-200 transition-colors">
+                <Download size={20} />
+                Excel (.xlsx) olarak İndir
+              </button>
+              <button className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-blue-100 text-blue-800 rounded-lg font-semibold hover:bg-blue-200 transition-colors">
+                <Download size={20} />
+                CSV olarak İndir
+              </button>
+            </div>
+            <button
+              onClick={() => setShowDownloadModal(false)}
+              className="mt-6 w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+            >
+              İptal
+            </button>
+          </motion.div>
+        </div>
+      )}
 
       {/* Payments List */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -263,7 +306,7 @@ export const PartnerPayments: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredPayments.map((payment) => (
+              {paginatedPayments.map((payment) => (
                 <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <span className="font-mono text-sm text-gray-700">{payment.id}</span>
@@ -312,6 +355,28 @@ export const PartnerPayments: React.FC = () => {
             </div>
             <h3 className="text-xl font-bold text-gray-700 mb-2">Ödeme Bulunamadı</h3>
             <p className="text-gray-500">Seçili filtrelere uygun ödeme kaydı bulunamadı.</p>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="p-4 flex justify-between items-center">
+            <span className="text-sm text-gray-600">Sayfa {currentPage} / {totalPages}</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50"
+              >
+                Önceki
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50"
+              >
+                Sonraki
+              </button>
+            </div>
           </div>
         )}
       </div>

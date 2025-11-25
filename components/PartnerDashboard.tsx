@@ -27,12 +27,12 @@ interface PartnerDashboardProps {
 
 // MOCK HISTORY DATA
 const MOCK_HISTORY = [
-  { id: 'JOB-4923', date: '22 Kas, 14:30', service: 'Çekici Hizmeti', route: 'Maslak > Levent', customer: 'Ahmet Yılmaz', price: 850, status: 'completed', earnings: 850 },
-  { id: 'JOB-4922', date: '21 Kas, 09:15', service: 'Akü Takviyesi', route: 'Beşiktaş (Yerinde)', customer: 'Selin Kaya', price: 400, status: 'completed', earnings: 400 },
-  { id: 'JOB-4921', date: '20 Kas, 23:45', Lastik: 'Lastik Değişimi', route: 'TEM Otoyolu', customer: 'Mehmet Demir', price: 600, status: 'cancelled', earnings: 0 },
-  { id: 'JOB-4920', date: '19 Kas, 11:20', service: 'Çekici Hizmeti', route: 'Kadıköy > Ümraniye', customer: 'Caner Erkin', price: 1200, status: 'completed', earnings: 1200 },
-  { id: 'JOB-4919', date: '18 Kas, 16:40', service: 'Yakıt Desteği', route: 'E-5 Merter', customer: 'Zeynep A.', price: 350, status: 'refunded', earnings: 0 },
-  { id: 'JOB-4918', date: '15 Kas, 10:00', service: 'Çekici Hizmeti', route: 'Bostancı > Kartal', customer: 'Burak Y.', price: 900, status: 'completed', earnings: 900 },
+  { id: 'JOB-4923', date: '22 Kas, 14:30', service: 'Çekici Hizmeti', route: 'Maslak > Levent', customer: 'Ahmet Yılmaz', price: 850, status: 'completed', earnings: 850, vehiclePlate: '34 AB 1234' },
+  { id: 'JOB-4922', date: '21 Kas, 09:15', service: 'Akü Takviyesi', route: 'Beşiktaş (Yerinde)', customer: 'Selin Kaya', price: 400, status: 'completed', earnings: 400, vehiclePlate: '34 XY 9988' },
+  { id: 'JOB-4921', date: '20 Kas, 23:45', Lastik: 'Lastik Değişimi', route: 'TEM Otoyolu', customer: 'Mehmet Demir', price: 600, status: 'cancelled', earnings: 0, vehiclePlate: '34 AB 1234' },
+  { id: 'JOB-4920', date: '19 Kas, 11:20', service: 'Çekici Hizmeti', route: 'Kadıköy > Ümraniye', customer: 'Caner Erkin', price: 1200, status: 'completed', earnings: 1200, vehiclePlate: '34 AB 1234' },
+  { id: 'JOB-4919', date: '18 Kas, 16:40', service: 'Yakıt Desteği', route: 'E-5 Merter', customer: 'Zeynep A.', price: 350, status: 'refunded', earnings: 0, vehiclePlate: '34 XY 9988' },
+  { id: 'JOB-4918', date: '15 Kas, 10:00', service: 'Çekici Hizmeti', route: 'Bostancı > Kartal', customer: 'Burak Y.', price: 900, status: 'completed', earnings: 900, vehiclePlate: '34 AB 1234' },
 ];
 
 // MOCK TRANSACTIONS FOR WALLET
@@ -218,6 +218,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [selectedReviewForObjection, setSelectedReviewForObjection] = useState<typeof MOCK_REVIEWS[0] | null>(null);
   const [objectionReason, setObjectionReason] = useState('');
   const [objectionDetails, setObjectionDetails] = useState('');
+  const [starFilter, setStarFilter] = useState<number | null>(null);
 
   // Filter State
   const [filterMode, setFilterMode] = useState<'all' | 'nearest' | 'highest_price' | 'urgent'>('all');
@@ -264,10 +265,14 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketCategory, setTicketCategory] = useState('');
   const [ticketDescription, setTicketDescription] = useState('');
+  const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
 
   // Fleet State - Yeni Araç Ekleme
   const [showNewVehiclePage, setShowNewVehiclePage] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<any | null>(null);
   const [vehiclePlate, setVehiclePlate] = useState('');
+  const [showVehicleHistoryModal, setShowVehicleHistoryModal] = useState(false);
+  const [selectedVehicleForHistory, setSelectedVehicleForHistory] = useState<any | null>(null);
 
   // Document Upload Handler
   const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -351,6 +356,8 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
   // Empty Trucks State
   const [emptyTruckType, setEmptyTruckType] = useState<'intercity' | 'intracity'>('intercity');
+  const [showMatchesModal, setShowMatchesModal] = useState(false);
+  const [selectedTruckForMatches, setSelectedTruckForMatches] = useState<any | null>(null);
   const [emptyTruckOrigin, setEmptyTruckOrigin] = useState('');
   const [emptyTruckDestination, setEmptyTruckDestination] = useState('');
   const [emptyTruckDate, setEmptyTruckDate] = useState('');
@@ -360,7 +367,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
   // New Jobs State
   const [selectedJobForDetail, setSelectedJobForDetail] = useState<JobRequest | null>(null);
-  const [newJobsFilter, setNewJobsFilter] = useState<'all' | 'nearest' | 'urgent' | 'high_price'>('all');
+  const [newJobsFilter, setNewJobsFilter] = useState<'all' | 'nearest' | 'urgent'>('all');
 
   const cityList = Object.keys(CITIES_WITH_DISTRICTS);
 
@@ -404,8 +411,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   });
 
   const filteredHistory = MOCK_HISTORY.filter(item => 
-    item.id.toLowerCase().includes(historySearch.toLowerCase()) ||
-    item.customer.toLowerCase().includes(historySearch.toLowerCase())
+    (item.id.toLowerCase().includes(historySearch.toLowerCase()) ||
+    item.customer.toLowerCase().includes(historySearch.toLowerCase())) &&
+    item.status === 'completed'
   );
 
   // Step 1: Open Modal
@@ -1528,6 +1536,98 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     );
   };
 
+  const renderVehicleHistoryModal = () => {
+    if (!selectedVehicleForHistory) return null;
+
+    const vehicleHistory = MOCK_HISTORY.filter(
+      item => item.vehiclePlate === selectedVehicleForHistory.plate && item.status === 'completed'
+    );
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden"
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                 <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                    <History size={28} />
+                 </div>
+                 <div>
+                    <h2 className="text-2xl font-bold">Araç Geçmişi: {selectedVehicleForHistory.plate}</h2>
+                    <p className="text-sm text-slate-300">{selectedVehicleForHistory.model}</p>
+                 </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowVehicleHistoryModal(false);
+                  setSelectedVehicleForHistory(null);
+                }}
+                className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 h-[60vh] overflow-y-auto">
+            {vehicleHistory.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-400 font-bold">
+                      <th className="p-4 pl-6">İş No / Tarih</th>
+                      <th className="p-4">Hizmet & Rota</th>
+                      <th className="p-4">Müşteri</th>
+                      <th className="p-4">Kazanç</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {vehicleHistory.map(item => (
+                      <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="p-4 pl-6">
+                          <p className="font-bold text-slate-800 text-sm">#{item.id}</p>
+                          <p className="text-xs text-slate-400">{item.date}</p>
+                        </td>
+                        <td className="p-4">
+                          <p className="font-bold text-slate-800 text-sm">{item.service || item.Lastik}</p>
+                          <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={10} /> {item.route}</p>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold">{item.customer.charAt(0)}</div>
+                            <span className="text-sm text-slate-600">{item.customer}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className="font-bold text-green-600">₺{item.earnings}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-slate-400">
+                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <History size={32} className="opacity-50" />
+                 </div>
+                 <p className="font-medium text-slate-500">Bu Araç İçin Geçmiş İş Bulunamadı</p>
+                 <p className="text-xs mt-1 text-slate-400">Bu araçla tamamlanmış bir iş kaydı yok.</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+
    const renderCustomerOfferModal = () => {
       if (!selectedRequestForOffer) return null;
       return (
@@ -1782,14 +1882,20 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
        </div>
 
        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
              <h3 className="font-bold text-lg text-slate-800">Hesap Hareketleri</h3>
-             <div className="flex gap-2">
+             <div className="flex items-center gap-2">
+                <input type="date" className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm" />
+                <span className="text-slate-400">-</span>
+                <input type="date" className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm" />
                 {['all', 'income', 'expense'].map(f => (
                    <button key={f} onClick={() => setWalletFilter(f as any)} className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize ${walletFilter === f ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}>
                       {f === 'all' ? 'Tümü' : f === 'income' ? 'Gelirler' : 'Giderler'}
                    </button>
                 ))}
+                <button className="ml-2 p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                  <Download size={16} />
+                </button>
              </div>
           </div>
           <div className="space-y-4">
@@ -1843,8 +1949,8 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                   <Truck size={28} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">Yeni Araç Ekle</h2>
-                  <p className="text-sm text-slate-300">Filonuza yeni araç tanımlayın</p>
+                  <h2 className="text-2xl font-bold">{editingVehicle ? 'Aracı Düzenle' : 'Yeni Araç Ekle'}</h2>
+                  <p className="text-sm text-slate-300">{editingVehicle ? 'Araç bilgilerini güncelleyin.' : 'Filonuza yeni araç tanımlayın'}</p>
                 </div>
               </div>
             </div>
@@ -2017,7 +2123,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                   disabled={!vehiclePlate.trim() || !vehicleModel.trim() || !vehicleType || !vehicleYear}
                   className="flex-1 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                 >
-                  <Save size={18} /> Aracı Kaydet
+                  <Save size={18} /> {editingVehicle ? 'Değişiklikleri Kaydet' : 'Aracı Kaydet'}
                 </button>
               </div>
             </div>
@@ -2057,7 +2163,14 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                          <h3 className="font-bold text-slate-900 text-lg">{vehicle.plate}</h3>
                          <p className="text-sm text-slate-500">{vehicle.model}</p>
                       </div>
-                      <button className="p-2 text-slate-400 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-lg transition-colors"><Settings size={16} /></button>
+                      <button onClick={() => {
+                        setEditingVehicle(vehicle);
+                        setVehiclePlate(vehicle.plate);
+                        setVehicleModel(vehicle.model);
+                        setVehicleType(vehicle.type);
+                        setVehicleDriver(vehicle.driver);
+                        setShowNewVehiclePage(true);
+                      }} className="p-2 text-slate-400 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-lg transition-colors"><Settings size={16} /></button>
                    </div>
                    <div className="space-y-2 text-sm">
                       <div className="flex justify-between py-2 border-b border-slate-50">
@@ -2070,8 +2183,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                       </div>
                    </div>
                    <div className="mt-4 pt-2 flex gap-2">
-                      <button className="flex-1 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors">Geçmiş</button>
-                      <button className="flex-1 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors">Konum</button>
+                      <button onClick={() => {
+                        setSelectedVehicleForHistory(vehicle);
+                        setShowVehicleHistoryModal(true);
+                      }} className="flex-1 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors">Geçmiş</button>
                    </div>
                 </div>
              </div>
@@ -2401,10 +2516,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                       <h3 className="font-bold text-slate-900 text-lg">Müşteri ***</h3>
                       <div className="flex items-center gap-1">
                         {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            size={18} 
-                            fill={i < selectedReviewForObjection.rating ? "#ef4444" : "none"} 
+                          <Star
+                            key={i}
+                            size={18}
+                            fill={i < selectedReviewForObjection.rating ? "#ef4444" : "none"}
                             className={i < selectedReviewForObjection.rating ? "text-red-500" : "text-slate-300"}
                           />
                         ))}
@@ -2494,7 +2609,8 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
     // Ana değerlendirmeler sayfası
     const avgRating = MOCK_REVIEWS.reduce((sum, r) => sum + r.rating, 0) / MOCK_REVIEWS.length;
-    
+    const filteredReviews = starFilter ? MOCK_REVIEWS.filter(r => starFilter <= 2 ? r.rating <= 2 : r.rating === starFilter) : MOCK_REVIEWS;
+
     return (
       <div className="p-4 md:p-6 space-y-6">
         {/* Header */}
@@ -2514,58 +2630,45 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Star size={16} fill="#22c55e" className="text-green-500" />
-              <span className="text-xs font-bold text-slate-500">5 Yıldız</span>
-            </div>
-            <p className="text-2xl font-bold text-slate-900">{MOCK_REVIEWS.filter(r => r.rating === 5).length}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Star size={16} fill="#3b82f6" className="text-blue-500" />
-              <span className="text-xs font-bold text-slate-500">4 Yıldız</span>
-            </div>
-            <p className="text-2xl font-bold text-slate-900">{MOCK_REVIEWS.filter(r => r.rating === 4).length}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Star size={16} fill="#f59e0b" className="text-amber-500" />
-              <span className="text-xs font-bold text-slate-500">3 Yıldız</span>
-            </div>
-            <p className="text-2xl font-bold text-slate-900">{MOCK_REVIEWS.filter(r => r.rating === 3).length}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Star size={16} fill="#ef4444" className="text-red-500" />
-              <span className="text-xs font-bold text-slate-500">≤2 Yıldız</span>
-            </div>
-            <p className="text-2xl font-bold text-slate-900">{MOCK_REVIEWS.filter(r => r.rating <= 2).length}</p>
-          </div>
+          {[5, 4, 3, 2].map(star => (
+            <button
+              key={star}
+              onClick={() => setStarFilter(starFilter === star ? null : star)}
+              className={`bg-white rounded-xl border-2 p-4 transition-all ${starFilter === star ? 'border-orange-500' : 'border-slate-200 hover:border-orange-300'}`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Star size={16} fill={
+                  star === 5 ? "#22c55e" : star === 4 ? "#3b82f6" : star === 3 ? "#f59e0b" : "#ef4444"
+                } className={
+                  star === 5 ? "text-green-500" : star === 4 ? "text-blue-500" : star === 3 ? "text-amber-500" : "text-red-500"
+                } />
+                <span className="text-xs font-bold text-slate-500">{star > 2 ? `${star} Yıldız` : '≤2 Yıldız'}</span>
+              </div>
+              <p className="text-2xl font-bold text-slate-900 text-left">{MOCK_REVIEWS.filter(r => star > 2 ? r.rating === star : r.rating <= 2).length}</p>
+            </button>
+          ))}
         </div>
 
         {/* Reviews List */}
         <div className="space-y-4">
-          {MOCK_REVIEWS.map(review => {
+          {filteredReviews.map(review => {
             const isLowRating = review.rating < 3;
             const displayName = isLowRating ? 'Müşteri ***' : review.customerName;
             const displayPhone = isLowRating ? '**********' : review.customerPhone;
-            
+
             return (
-              <motion.div 
-                key={review.id} 
+              <motion.div
+                key={review.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`bg-white rounded-2xl border-2 p-4 md:p-6 transition-all hover:shadow-md ${
-                  isLowRating ? 'border-red-200 bg-red-50/30' : 'border-slate-200'
-                }`}
+                className={`bg-white rounded-2xl border-2 p-4 md:p-6 transition-all hover:shadow-md ${isLowRating ? 'border-red-200 bg-red-50/30' : 'border-slate-200'
+                  }`}
               >
                 {/* Desktop Layout */}
                 <div className="hidden md:flex justify-between items-start mb-4">
                   <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ${
-                      isLowRating ? 'bg-red-500' : 'bg-slate-700'
-                    }`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ${isLowRating ? 'bg-red-500' : 'bg-slate-700'
+                      }`}>
                       {isLowRating ? '?' : review.customerName.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -2583,10 +2686,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                   </div>
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        size={18} 
-                        fill={i < review.rating ? "#FFA500" : "none"} 
+                      <Star
+                        key={i}
+                        size={18}
+                        fill={i < review.rating ? "#FFA500" : "none"}
                         className={i < review.rating ? "text-orange-500" : "text-slate-300"}
                       />
                     ))}
@@ -2595,9 +2698,8 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
                 {/* Mobile Layout - Avatar üstte */}
                 <div className="md:hidden flex items-start gap-3 mb-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md shrink-0 ${
-                    isLowRating ? 'bg-red-500' : 'bg-slate-700'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md shrink-0 ${isLowRating ? 'bg-red-500' : 'bg-slate-700'
+                    }`}>
                     {isLowRating ? '?' : review.customerName.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -2615,13 +2717,12 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
                 <div className="flex flex-wrap gap-2 mb-4">
                   {review.tags.map((tag, idx) => (
-                    <span 
-                      key={idx} 
-                      className={`text-xs px-3 py-1.5 rounded-full font-bold ${
-                        POSITIVE_RATING_TAGS.includes(tag)
+                    <span
+                      key={idx}
+                      className={`text-xs px-3 py-1.5 rounded-full font-bold ${POSITIVE_RATING_TAGS.includes(tag)
                           ? 'bg-green-100 text-green-700'
                           : 'bg-red-100 text-red-700'
-                      }`}
+                        }`}
                     >
                       {tag}
                     </span>
@@ -2639,10 +2740,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                     </div>
                     <div className="flex items-center gap-0.5">
                       {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          size={16} 
-                          fill={i < review.rating ? "#FFA500" : "none"} 
+                        <Star
+                          key={i}
+                          size={16}
+                          fill={i < review.rating ? "#FFA500" : "none"}
                           className={i < review.rating ? "text-orange-500" : "text-slate-300"}
                         />
                       ))}
@@ -2654,7 +2755,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                 <div className="flex justify-between items-center pt-4 border-t border-slate-100 md:border-t-0 md:pt-0 mt-4 md:mt-0">
                   <span className="text-xs text-slate-400 font-mono">İş No: #{review.jobId}</span>
                   {isLowRating && (
-                    <button 
+                    <button
                       onClick={() => handleOpenObjection(review)}
                       className="text-xs text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
                     >
@@ -2722,7 +2823,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                   className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 >
                   <option value="">Seçiniz...</option>
-                  <option value="payment">Ödeme & Komisyon</option>
                   <option value="technical">Teknik Sorun</option>
                   <option value="customer_complaint">Müşteri Şikayeti</option>
                   <option value="account">Hesap İşlemleri</option>
@@ -2738,7 +2838,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                   type="text"
                   value={ticketSubject}
                   onChange={(e) => setTicketSubject(e.target.value)}
-                  placeholder="Örn: Ödeme hesabıma yansımadı"
+                  placeholder="Örn: Uygulamada teknik bir sorun yaşıyorum"
                   maxLength={100}
                   className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 />
@@ -2795,11 +2895,11 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                       description: ticketDescription,
                       timestamp: new Date().toISOString()
                     });
-                    alert('✅ Destek talebiniz başarıyla oluşturuldu. Ekibimiz en kısa sürede size dönüş yapacaktır.');
                     setShowNewTicketPage(false);
                     setTicketSubject('');
                     setTicketCategory('');
                     setTicketDescription('');
+                    alert('Mesajınız başarılı bir şekilde alındı.');
                   }}
                   disabled={!ticketCategory || !ticketSubject.trim() || !ticketDescription.trim()}
                   className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
@@ -2812,6 +2912,40 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         </div>
       );
     }
+
+    const renderTicketDetailModal = () => {
+        if (!selectedTicket) return null;
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" onClick={() => setSelectedTicket(null)}>
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-6 text-white">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold">Destek Talebi Detayı</h2>
+                                <p className="text-sm text-white/80">Talep No: #{selectedTicket.id}</p>
+                            </div>
+                            <button onClick={() => setSelectedTicket(null)} className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <p><span className="font-bold">Konu:</span> {selectedTicket.subject}</p>
+                        <p><span className="font-bold">Tarih:</span> {selectedTicket.date}</p>
+                        <p><span className="font-bold">Durum:</span> {selectedTicket.status}</p>
+                        <p className="mt-4 pt-4 border-t border-slate-200"><span className="font-bold">Detaylar:</span></p>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris. Vivamus hendrerit arcu sed erat molestie vehicula. Sed auctor neque eu tellus rhoncus ut eleifend nibh porttitor.</p>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    };
 
     // Ana destek sayfası
     return (
@@ -2840,7 +2974,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
            <h3 className="font-bold text-slate-800 mb-4">Geçmiş Taleplerim</h3>
            <div className="space-y-2">
               {MOCK_TICKETS.map(ticket => (
-                 <div key={ticket.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                 <div key={ticket.id} onClick={() => setSelectedTicket(ticket)} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
                     <div className="flex items-center gap-4">
                        <div className={`w-2 h-2 rounded-full ${ticket.status === 'open' ? 'bg-green-500' : 'bg-slate-300'}`}></div>
                        <div>
@@ -2855,6 +2989,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               ))}
            </div>
         </div>
+        <AnimatePresence>
+            {selectedTicket && renderTicketDetailModal()}
+        </AnimatePresence>
      </div>
     );
   };
@@ -2864,7 +3001,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     const filteredNewJobs = requests.filter(req => {
       if (newJobsFilter === 'nearest') return parseFloat(req.distance) < 10;
       if (newJobsFilter === 'urgent') return req.urgency === 'high';
-      if (newJobsFilter === 'high_price') return req.estimatedPrice && req.estimatedPrice > 800;
       return true;
     });
 
@@ -2877,7 +3013,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               { id: 'all', label: 'Tümü', icon: LayoutList },
               { id: 'nearest', label: 'En Yakın', icon: Navigation },
               { id: 'urgent', label: 'Acil İşler', icon: AlertTriangle },
-              { id: 'high_price', label: 'Yüksek Ücret', icon: DollarSign },
             ].map(filter => (
               <button
                 key={filter.id}
@@ -3023,6 +3158,61 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
   // ============== BOŞ DÖNEN ARAÇLAR TAB ==============
   const renderEmptyTrucksTab = () => {
+
+    const handleOpenMatchesModal = (truck: any) => {
+        setSelectedTruckForMatches(truck);
+        setShowMatchesModal(true);
+    };
+
+    const renderMatchesModal = () => {
+        if (!selectedTruckForMatches) return null;
+
+        // Mock data for matches - replace with real data later
+        const MOCK_MATCHES = [
+            { id: 'MATCH-001', customerName: 'Ayşe Yıldız', route: `${selectedTruckForMatches.origin} -> ${selectedTruckForMatches.destinations[0]}`, price: 750 },
+            { id: 'MATCH-002', customerName: 'Fatma Demir', route: `${selectedTruckForMatches.origin} -> ${selectedTruckForMatches.destinations[0]}`, price: 800 },
+            { id: 'MATCH-003', customerName: 'Hayriye Kaya', route: `${selectedTruckForMatches.origin} -> Bir ara nokta`, price: 600 },
+        ];
+
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden"
+                >
+                    <div className="bg-gradient-to-r from-green-600 to-green-700 p-6 text-white">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold">Eşleşen Talepler</h2>
+                                <p className="text-sm text-green-100">{selectedTruckForMatches.origin} → {selectedTruckForMatches.destinations[0]}</p>
+                            </div>
+                            <button onClick={() => setShowMatchesModal(false)} className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                        {MOCK_MATCHES.map(match => (
+                            <div key={match.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between hover:border-green-300 transition-colors">
+                                <div>
+                                    <p className="font-bold text-slate-800">{match.customerName}</p>
+                                    <p className="text-sm text-slate-500">{match.route}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-lg text-green-600">₺{match.price}</p>
+                                    <button className="text-xs text-blue-600 font-bold hover:underline">Teklif Ver</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            </div>
+        );
+    };
+
     const handleAddEmptyTruck = () => {
       if (!emptyTruckOrigin || !emptyTruckDate || !emptyTruckTime || !emptyTruckVehicle) {
         alert('Lütfen tüm zorunlu alanları doldurun');
@@ -3187,7 +3377,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         {/* Active Trucks List */}
         <div>
           <h3 className="font-bold text-slate-800 text-xl mb-4 flex items-center gap-2">
-            <Route size={24} className="text-blue-600" /> Son Eklenen Araçlar
+            <Route size={24} className="text-blue-600" /> Boş Dönen Araçlar
           </h3>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -3240,7 +3430,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                     <span className="text-sm font-bold text-green-700">
                       ✅ {truck.matches} Eşleşme Bulundu
                     </span>
-                    <button className="text-xs bg-green-600 text-white px-3 py-1 rounded-lg font-bold hover:bg-green-700">
+                    <button onClick={() => handleOpenMatchesModal(truck)} className="text-xs bg-green-600 text-white px-3 py-1 rounded-lg font-bold hover:bg-green-700">
                       Görüntüle
                     </button>
                   </div>
@@ -3259,6 +3449,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
             </div>
           )}
         </div>
+        <AnimatePresence>
+            {showMatchesModal && renderMatchesModal()}
+        </AnimatePresence>
       </div>
     );
   };
@@ -3342,7 +3535,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         <div className="bg-white rounded-2xl border-2 border-slate-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-              <Truck size={20} className="text-orange-600" /> Son Eklenen Araçlar
+              <Truck size={20} className="text-orange-600" /> Boş Dönen Araçlar
             </h3>
             <button
               onClick={() => setActiveTab('emptyTrucks')}
@@ -3869,7 +4062,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
               {settingsSubTab === 'services' && (
                  <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-slate-800">Hizmet & Fiyat Ayarları</h2>
+                    <h2 className="text-2xl font-bold text-slate-800">Hizmet Ayarları</h2>
                     <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-xl flex gap-3 text-sm text-yellow-800">
                        <AlertTriangle className="shrink-0" size={20} />
                        <p>Burada belirlediğiniz taban fiyatlar müşteriye gösterilen "Başlangıç Fiyatı"dır. Kesin fiyat teklif sırasında belirlenir.</p>
@@ -3880,13 +4073,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                              <div className="flex items-center gap-3">
                                 <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
                                 <span className="font-bold text-slate-700">{srv}</span>
-                             </div>
-                             <div className="flex items-center gap-2">
-                                <span className="text-sm text-slate-400">Taban Fiyat:</span>
-                                <div className="relative w-28">
-                                   <input type="number" defaultValue="500" className="w-full p-2 pl-7 bg-slate-50 rounded-lg border-2 border-slate-200 text-sm font-bold outline-none focus:border-blue-500 transition-all" />
-                                   <span className="absolute left-2 top-2 text-slate-400 text-sm font-bold">₺</span>
-                                </div>
                              </div>
                           </div>
                        ))}
@@ -4096,10 +4282,21 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                 <button onClick={() => setShowAddCreditModal(true)} className="w-full py-1 bg-blue-600 text-[10px] rounded text-white font-bold leading-none flex items-center justify-center">+</button>
             </div>
           </div>
-          <div className="flex items-center gap-3 mb-4 px-2 justify-center lg:justify-start">
+          <button
+            onClick={() => {
+              setActiveTab('settings');
+              setSettingsSubTab('profile');
+            }}
+            className="w-full text-left flex items-center gap-3 mb-4 px-2 justify-center lg:justify-start hover:bg-slate-800 rounded-lg p-2 transition-colors"
+          >
             <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden border-2 border-slate-600 shrink-0"><img src="https://i.pravatar.cc/150?img=11" alt="Profile" /></div>
-            <div className="hidden lg:block overflow-hidden"><p className="text-sm font-bold truncate">Yılmaz Oto Kurtarma</p><div className="flex items-center text-xs text-yellow-500"><span>★ 4.9</span><span className="text-slate-500 ml-1">(128 İş)</span></div></div>
-          </div>
+            <div className="hidden lg:block overflow-hidden">
+              <p className="text-sm font-bold truncate">Yılmaz Oto Kurtarma</p>
+              <div className="flex items-center text-xs text-yellow-500">
+                <span>★ 4.9</span><span className="text-slate-500 ml-1">(128 İş)</span>
+              </div>
+            </div>
+          </button>
           <button onClick={onLogout} className="w-full flex items-center justify-center lg:justify-start p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"><LogOut size={18} /><span className="hidden lg:block ml-2 text-sm font-medium">Çıkış Yap</span></button>
         </div>
       </div>
@@ -4115,7 +4312,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
             {activeTab === 'active' && 'Aktif Operasyon'}
             {activeTab === 'emptyTrucks' && 'Boş Dönen Araçlar'}
             {activeTab === 'offer_history' && 'Teklif Geçmişim'}
-            {activeTab === 'payments' && 'Ödemeler & Komisyon'}
+            {activeTab === 'payments' && 'Ödemeler'}
             {activeTab === 'documents' && 'Belgelerim'}
             {activeTab === 'wallet' && 'Finansal Durum'}
             {activeTab === 'history' && 'İş Geçmişi'}
@@ -4238,6 +4435,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       <AnimatePresence>{showNavigationModal && renderNavigationModal()}</AnimatePresence>
       <AnimatePresence>{showDocumentUploadModal && renderDocumentUploadModal()}</AnimatePresence>
       <AnimatePresence>{showDocumentDetailModal && renderDocumentDetailModal()}</AnimatePresence>
+      <AnimatePresence>{showVehicleHistoryModal && renderVehicleHistoryModal()}</AnimatePresence>
     </div>
   );
 };

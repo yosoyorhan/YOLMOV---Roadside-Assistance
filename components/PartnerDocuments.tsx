@@ -39,6 +39,7 @@ export const PartnerDocuments: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [viewingDocument, setViewingDocument] = useState<Document | null>(null);
 
   const getStatusBadge = (status: Document['status']) => {
     const config = {
@@ -235,13 +236,13 @@ export const PartnerDocuments: React.FC = () => {
                 <div className="flex flex-col items-end gap-2">
                   {getStatusBadge(doc.status)}
                   <div className="flex gap-2">
-                    <button className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200">
+                    <button onClick={() => setViewingDocument(doc)} className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200">
                       <Eye size={16} className="text-gray-600" />
                     </button>
-                    <button className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200">
+                    <button onClick={() => alert(`'${doc.name}' indiriliyor.`)} className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200">
                       <Download size={16} className="text-gray-600" />
                     </button>
-                    <button className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center hover:bg-red-100">
+                    <button onClick={() => setDocuments(documents.filter(d => d.id !== doc.id))} className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center hover:bg-red-100">
                       <Trash2 size={16} className="text-red-600" />
                     </button>
                   </div>
@@ -277,6 +278,46 @@ export const PartnerDocuments: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {viewingDocument && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[100] p-4" onClick={() => setViewingDocument(null)}>
+          <div className="bg-white rounded-2xl p-6 md:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">{DOCUMENT_TYPES.find(t => t.value === viewingDocument.type)?.label}</h2>
+              <button onClick={() => setViewingDocument(null)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500">Dosya Adı</p>
+                  <p className="font-semibold">{viewingDocument.name}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500">Durum</p>
+                  {getStatusBadge(viewingDocument.status)}
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500">Yükleme Tarihi</p>
+                  <p className="font-semibold">{viewingDocument.uploadDate}</p>
+                </div>
+                {viewingDocument.expiryDate && (
+                  <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p className="text-xs text-yellow-600">Son Geçerlilik Tarihi</p>
+                    <p className="font-semibold text-yellow-800">{viewingDocument.expiryDate}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-center">
+                <img src="https://via.placeholder.com/400x250.png?text=Belge+Görseli" alt="Document Preview" className="max-w-full max-h-80 rounded-md object-contain" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
