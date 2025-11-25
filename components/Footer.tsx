@@ -1,5 +1,5 @@
 import React from 'react';
-import { Twitter, Facebook, Linkedin, Phone, Mail } from 'lucide-react';
+import { Twitter, Facebook, Linkedin, Phone, Mail, MapPin } from 'lucide-react';
 
 interface FooterProps {
   onNavigate?: (page: 'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog') => void;
