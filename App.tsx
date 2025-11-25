@@ -141,6 +141,7 @@ function App() {
             }} 
             onLogout={handleCustomerLogout}
             onBackHome={() => setCurrentPage('home')}
+            onViewOffers={() => setCurrentPage('customer-offers')}
           />
         ) : (
           <div className="flex items-center justify-center h-[50vh]">Profil bulunamadı</div>
@@ -153,7 +154,10 @@ function App() {
           />
         ) : <div className="flex items-center justify-center h-[50vh]">Önce giriş yapın</div>;
       case 'quote':
-        return <QuotePage onHome={() => setCurrentPage('home')} />;
+        return <QuotePage 
+          onHome={() => setCurrentPage('home')} 
+          onViewOffers={() => customer ? setCurrentPage('customer-offers') : setCurrentPage('login-customer')}
+        />;
       case 'listing':
         return (
           <ListingPage 

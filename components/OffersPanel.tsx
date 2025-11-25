@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Customer, Request, Offer } from '../types';
 import { seedDemoRequests, getRequestsByCustomer, getOffersForRequest, acceptOffer, rejectOffer } from '../services/mockApi';
-import { ArrowLeft, MapPin, CheckCircle2, XCircle, Clock, Handshake, FilePlus, Check, X, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle2, XCircle, Clock, Handshake, FilePlus, Check, X, RefreshCcw, Eye, User, Phone, Navigation, ShieldCheck, DollarSign } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface OffersPanelProps {
   customer: Customer;
@@ -35,6 +36,7 @@ const OffersPanel: React.FC<OffersPanelProps> = ({ customer, onBack }) => {
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
 
   useEffect(() => {
     seedDemoRequests(customer.id);
@@ -153,6 +155,9 @@ const OffersPanel: React.FC<OffersPanelProps> = ({ customer, onBack }) => {
                       </div>
                       {of.message && <p className="text-xs text-gray-600 mt-2 line-clamp-2">"{of.message}"</p>}
                       <div className="flex gap-2 mt-3">
+                        <button onClick={() => setSelectedOffer(of)} className="px-3 py-2 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold flex items-center gap-1 hover:bg-blue-100">
+                          <Eye size={14}/> Detay
+                        </button>
                         {of.status === 'sent' && (
                           <>
                             <button onClick={() => handleAccept(of.id)} className="px-3 py-2 rounded-lg bg-green-600 text-white text-xs font-bold flex items-center gap-1 hover:bg-green-700"><Check size={14}/> Kabul</button>
@@ -160,7 +165,7 @@ const OffersPanel: React.FC<OffersPanelProps> = ({ customer, onBack }) => {
                           </>
                         )}
                         {of.status === 'accepted' && (
-                          <div className="flex items-center gap-1 text-green-600 text-xs font-bold"><CheckCircle2 size={16}/> Kabul edildi - iletişim açıldı</div>
+                          <div className="flex items-center gap-1 text-green-600 text-xs font-bold"><CheckCircle2 size={16}/> Kabul edildi</div>
                         )}
                         {of.status === 'rejected' && (
                           <div className="flex items-center gap-1 text-red-600 text-xs font-bold"><XCircle size={16}/> Reddedildi</div>
@@ -175,6 +180,152 @@ const OffersPanel: React.FC<OffersPanelProps> = ({ customer, onBack }) => {
 
         </div>
       </div>
+
+      {/* Offer Detail Modal */}
+      <AnimatePresence>
+        {selectedOffer && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            onClick={() => setSelectedOffer(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden"
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-6 text-white">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold">Teklif Detayları</h3>
+                    <p className="text-sm text-white/80 mt-1">#{selectedOffer.id}</p>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedOffer(null)}
+                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-6">
+                {/* Partner Info */}
+                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                  <div className="w-12 h-12 bg-brand-orange/10 rounded-full flex items-center justify-center">
+                    <User size={24} className="text-brand-orange" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-800">Partner #{selectedOffer.partnerId}</p>
+                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                      <ShieldCheck size={12} className="text-green-500" /> Doğrulanmış Hizmet Sağlayıcı
+                    </p>
+                  </div>
+                </div>
+
+                {/* Price & ETA */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-green-50 rounded-xl">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign size={16} className="text-green-600" />
+                      <p className="text-xs font-bold text-green-600 uppercase">Teklif Fiyatı</p>
+                    </div>
+                    <p className="text-2xl font-bold text-green-700">₺{selectedOffer.price}</p>
+                  </div>
+                  <div className="p-4 bg-blue-50 rounded-xl">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock size={16} className="text-blue-600" />
+                      <p className="text-xs font-bold text-blue-600 uppercase">Varış Süresi</p>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-700">{selectedOffer.etaMinutes} dk</p>
+                  </div>
+                </div>
+
+                {/* Message */}
+                {selectedOffer.message && (
+                  <div className="p-4 bg-gray-50 rounded-xl">
+                    <p className="text-xs font-bold text-gray-600 uppercase mb-2">Partner Mesajı</p>
+                    <p className="text-sm text-gray-700">"{selectedOffer.message}"</p>
+                  </div>
+                )}
+
+                {/* Request Info */}
+                {selectedRequest && (
+                  <div className="p-4 border border-gray-200 rounded-xl">
+                    <p className="text-xs font-bold text-gray-600 uppercase mb-3">Talep Bilgileri</p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-start gap-2">
+                        <Navigation size={14} className="text-gray-400 mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="text-gray-500 text-xs">Hizmet Türü</p>
+                          <p className="font-bold text-gray-800 capitalize">{selectedRequest.serviceType}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <MapPin size={14} className="text-gray-400 mt-1 flex-shrink-0" />
+                        <div>
+                          <p className="text-gray-500 text-xs">Konum</p>
+                          <p className="font-bold text-gray-800">{selectedRequest.fromLocation}</p>
+                          {selectedRequest.toLocation && (
+                            <p className="text-gray-600 text-xs mt-1">→ {selectedRequest.toLocation}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Status Badge */}
+                <div className="flex items-center justify-center">
+                  <span className={offerStatusBadge(selectedOffer.status) + ' text-sm px-4 py-2'}>
+                    {selectedOffer.status === 'sent' && 'Beklemede'}
+                    {selectedOffer.status === 'accepted' && 'Kabul Edildi'}
+                    {selectedOffer.status === 'rejected' && 'Reddedildi'}
+                    {selectedOffer.status === 'withdrawn' && 'Geri Çekildi'}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                {selectedOffer.status === 'sent' && (
+                  <div className="flex gap-3 pt-4 border-t border-gray-200">
+                    <button 
+                      onClick={() => {
+                        handleReject(selectedOffer.id);
+                        setSelectedOffer(null);
+                      }}
+                      className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                    >
+                      Reddet
+                    </button>
+                    <button 
+                      onClick={() => {
+                        handleAccept(selectedOffer.id);
+                        setSelectedOffer(null);
+                      }}
+                      className="flex-[2] px-4 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors shadow-lg"
+                    >
+                      Teklifi Kabul Et
+                    </button>
+                  </div>
+                )}
+
+                {selectedOffer.status === 'accepted' && (
+                  <div className="p-4 bg-green-50 rounded-xl text-center">
+                    <p className="text-sm font-bold text-green-700 mb-2">✓ Teklif Kabul Edildi</p>
+                    <p className="text-xs text-green-600">Partner ile iletişim kurabilirsiniz.</p>
+                    <button className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 flex items-center gap-2 mx-auto">
+                      <Phone size={14} /> İletişime Geç
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -37,9 +37,10 @@ const VEHICLE_TYPES = [
 
 interface QuoteWizardProps {
   onHome?: () => void;
+  onViewOffers?: () => void;
 }
 
-const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome }) => {
+const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
@@ -50,12 +51,17 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome }) => {
     make: '',
     model: '',
     year: '',
-    serviceType: 'towing', // towing (Taşınacak) or rescue (Kurtarılacak)
-    fromLocation: '',
-    toLocation: '',
+    serviceType: 'towing', // towing (Taşınacak - Çekici)
+    fromCity: '',
+    fromDistrict: '',
+    fromAddress: '',
+    toCity: '',
+    toDistrict: '',
+    toAddress: '',
     condition: 'broken', // running (Çalışır) or broken (Arızalı/Kazalı)
     timing: 'now', // now, week, later
     note: '',
+    useRegisteredContact: true,
     firstName: '',
     lastName: '',
     phone: ''
@@ -73,15 +79,22 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome }) => {
     }
 
     if (step === 2) {
-      if (!formData.fromLocation) newErrors.fromLocation = true;
-      // If towing, destination is required
-      if (formData.serviceType === 'towing' && !formData.toLocation) newErrors.toLocation = true;
+      if (!formData.fromCity) newErrors.fromCity = true;
+      if (!formData.fromDistrict) newErrors.fromDistrict = true;
+      // For towing service, destination is required
+      if (formData.serviceType === 'towing') {
+        if (!formData.toCity) newErrors.toCity = true;
+        if (!formData.toDistrict) newErrors.toDistrict = true;
+      }
     }
 
     if (step === 4) {
-      if (!formData.firstName) newErrors.firstName = true;
-      if (!formData.lastName) newErrors.lastName = true;
-      if (!formData.phone) newErrors.phone = true;
+      // Only validate manual contact if not using registered contact
+      if (!formData.useRegisteredContact) {
+        if (!formData.firstName) newErrors.firstName = true;
+        if (!formData.lastName) newErrors.lastName = true;
+        if (!formData.phone) newErrors.phone = true;
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -217,56 +230,127 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome }) => {
             >
                Taşınacak (Çekici)
             </button>
-            <button
-               onClick={() => updateData('serviceType', 'rescue')}
-               className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-                  formData.serviceType === 'rescue' ? 'bg-white shadow-sm text-brand-orange' : 'text-gray-500'
-               }`}
-            >
-               Kurtarılacak
-            </button>
          </div>
       </div>
 
-      <div className="space-y-4">
-        <div>
-           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nereden Alınacak?</label>
-           <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+      <div className="space-y-6">
+        {/* FROM LOCATION */}
+        <div className="bg-gray-50 p-6 rounded-2xl space-y-4">
+          <h4 className="font-bold text-gray-900 flex items-center gap-2">
+            <MapPin size={18} className="text-brand-orange" />
+            Nereden Alınacak?
+          </h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">İl</label>
               <select 
-                className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none appearance-none ${errors.fromLocation ? 'border-red-300' : 'border-gray-200'}`}
-                value={formData.fromLocation}
-                onChange={(e) => updateData('fromLocation', e.target.value)}
+                className={`w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.fromCity ? 'border-red-300' : 'border-gray-200'}`}
+                value={formData.fromCity}
+                onChange={(e) => {
+                  updateData('fromCity', e.target.value);
+                  updateData('fromDistrict', '');
+                }}
               >
                 <option value="">İl Seçiniz</option>
                 {Object.keys(CITIES_WITH_DISTRICTS).map(city => (
                   <option key={city} value={city}>{city}</option>
                 ))}
               </select>
-           </div>
-           {errors.fromLocation && <p className="text-red-500 text-xs mt-1">Konum seçimi zorunludur.</p>}
+              {errors.fromCity && <p className="text-red-500 text-xs mt-1">İl seçimi zorunludur</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">İlçe</label>
+              <select 
+                className={`w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.fromDistrict ? 'border-red-300' : 'border-gray-200'}`}
+                value={formData.fromDistrict}
+                onChange={(e) => updateData('fromDistrict', e.target.value)}
+                disabled={!formData.fromCity}
+              >
+                <option value="">İlçe Seçiniz</option>
+                {formData.fromCity && CITIES_WITH_DISTRICTS[formData.fromCity].map(district => (
+                  <option key={district} value={district}>{district}</option>
+                ))}
+              </select>
+              {errors.fromDistrict && <p className="text-red-500 text-xs mt-1">İlçe seçimi zorunludur</p>}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              Detaylı Adres <span className="text-gray-400 normal-case">(İsteğe Bağlı)</span>
+            </label>
+            <textarea
+              className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none resize-none"
+              rows={2}
+              placeholder="Mahalle, sokak, bina no..."
+              value={formData.fromAddress}
+              onChange={(e) => updateData('fromAddress', e.target.value)}
+            />
+          </div>
         </div>
 
+        {/* TO LOCATION */}
         {formData.serviceType === 'towing' && (
            <motion.div 
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
+              className="bg-blue-50 p-6 rounded-2xl space-y-4"
            >
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nereye Gidecek?</label>
-              <div className="relative">
-                 <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                 <select 
-                   className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none appearance-none ${errors.toLocation ? 'border-red-300' : 'border-gray-200'}`}
-                   value={formData.toLocation}
-                   onChange={(e) => updateData('toLocation', e.target.value)}
-                 >
-                   <option value="">İl Seçiniz</option>
-                   {Object.keys(CITIES_WITH_DISTRICTS).map(city => (
-                     <option key={city} value={city}>{city}</option>
-                   ))}
-                 </select>
+              <h4 className="font-bold text-gray-900 flex items-center gap-2">
+                <Navigation size={18} className="text-blue-600" />
+                Nereye Taşınacak?
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">İl</label>
+                  <select 
+                    className={`w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.toCity ? 'border-red-300' : 'border-gray-200'}`}
+                    value={formData.toCity}
+                    onChange={(e) => {
+                      updateData('toCity', e.target.value);
+                      updateData('toDistrict', '');
+                    }}
+                  >
+                    <option value="">İl Seçiniz</option>
+                    {Object.keys(CITIES_WITH_DISTRICTS).map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                  {errors.toCity && <p className="text-red-500 text-xs mt-1">İl seçimi zorunludur</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">İlçe</label>
+                  <select 
+                    className={`w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.toDistrict ? 'border-red-300' : 'border-gray-200'}`}
+                    value={formData.toDistrict}
+                    onChange={(e) => updateData('toDistrict', e.target.value)}
+                    disabled={!formData.toCity}
+                  >
+                    <option value="">İlçe Seçiniz</option>
+                    {formData.toCity && CITIES_WITH_DISTRICTS[formData.toCity].map(district => (
+                      <option key={district} value={district}>{district}</option>
+                    ))}
+                  </select>
+                  {errors.toDistrict && <p className="text-red-500 text-xs mt-1">İlçe seçimi zorunludur</p>}
+                </div>
               </div>
-              {errors.toLocation && <p className="text-red-500 text-xs mt-1">Varış noktası seçimi zorunludur.</p>}
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Detaylı Adres <span className="text-gray-400 normal-case">(İsteğe Bağlı)</span>
+                </label>
+                <textarea
+                  className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none resize-none"
+                  rows={2}
+                  placeholder="Servis, oto galeri adresi..."
+                  value={formData.toAddress}
+                  onChange={(e) => updateData('toAddress', e.target.value)}
+                />
+              </div>
            </motion.div>
         )}
       </div>
@@ -348,16 +432,22 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome }) => {
              </div>
              <div className="flex justify-between border-b border-orange-100 pb-2">
                 <span className="text-gray-500">Hizmet:</span>
-                <span className="font-bold">{formData.serviceType === 'towing' ? 'Çekici Hizmeti' : 'Kurtarma Hizmeti'}</span>
+                <span className="font-bold">Çekici Hizmeti</span>
              </div>
              <div className="flex justify-between border-b border-orange-100 pb-2">
-                <span className="text-gray-500">Güzergah:</span>
+                <span className="text-gray-500">Nereden:</span>
                 <span className="font-bold text-right">
-                   {formData.fromLocation} 
-                   {formData.toLocation && <span className="text-brand-orange mx-1">➔</span>} 
-                   {formData.toLocation}
+                   {formData.fromDistrict}, {formData.fromCity}
                 </span>
              </div>
+             {formData.toCity && (
+               <div className="flex justify-between border-b border-orange-100 pb-2">
+                  <span className="text-gray-500">Nereye:</span>
+                  <span className="font-bold text-right">
+                     {formData.toDistrict}, {formData.toCity}
+                  </span>
+               </div>
+             )}
              <div className="flex justify-between">
                 <span className="text-gray-500">Zamanlama:</span>
                 <span className="font-bold">
@@ -369,60 +459,94 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome }) => {
 
        <div>
           <h3 className="text-lg font-bold text-gray-900 mb-4">İletişim Bilgileri</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ad</label>
-                <div className="relative">
-                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                   <input 
-                     type="text" 
-                     className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.firstName ? 'border-red-300' : 'border-gray-200'}`}
-                     placeholder="Adınız"
-                     value={formData.firstName}
-                     onChange={(e) => updateData('firstName', e.target.value)}
-                   />
+          
+          <div className="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-100">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.useRegisteredContact}
+                  onChange={(e) => {
+                    updateData('useRegisteredContact', e.target.checked);
+                    if (e.target.checked) {
+                      // Clear manual contact fields when switching to registered
+                      updateData('firstName', '');
+                      updateData('lastName', '');
+                      updateData('phone', '');
+                    }
+                  }}
+                  className="w-5 h-5 text-brand-orange focus:ring-brand-orange rounded"
+                />
+                <div>
+                  <p className="font-bold text-gray-900">Kayıtlı İletişim Bilgilerimi Kullan</p>
+                  <p className="text-xs text-gray-600">Hesabınızdaki bilgiler kullanılacak</p>
                 </div>
-                {errors.firstName && <p className="text-red-500 text-xs mt-1">Ad zorunludur.</p>}
-             </div>
-             <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Soyad</label>
-                <div className="relative">
-                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                   <input 
-                     type="text" 
-                     className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.lastName ? 'border-red-300' : 'border-gray-200'}`}
-                     placeholder="Soyadınız"
-                     value={formData.lastName}
-                     onChange={(e) => updateData('lastName', e.target.value)}
-                   />
+              </label>
+              <ShieldCheck size={20} className="text-blue-600" />
+            </div>
+          </div>
+
+          {!formData.useRegisteredContact && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="space-y-4"
+            >
+              <p className="text-sm text-gray-500 mb-4">Araç başındaki kişinin bilgilerini girin:</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ad</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input 
+                      type="text" 
+                      className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.firstName ? 'border-red-300' : 'border-gray-200'}`}
+                      placeholder="Adınız"
+                      value={formData.firstName}
+                      onChange={(e) => updateData('firstName', e.target.value)}
+                    />
+                  </div>
+                  {errors.firstName && <p className="text-red-500 text-xs mt-1">Ad zorunludur</p>}
                 </div>
-                {errors.lastName && <p className="text-red-500 text-xs mt-1">Soyad zorunludur.</p>}
-             </div>
-             <div className="md:col-span-2">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Soyad</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input 
+                      type="text" 
+                      className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.lastName ? 'border-red-300' : 'border-gray-200'}`}
+                      placeholder="Soyadınız"
+                      value={formData.lastName}
+                      onChange={(e) => updateData('lastName', e.target.value)}
+                    />
+                  </div>
+                  {errors.lastName && <p className="text-red-500 text-xs mt-1">Soyad zorunludur</p>}
+                </div>
+              </div>
+              
+              <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Telefon</label>
                 <div className="relative">
-                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                   <input 
-                     type="tel" 
-                     className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.phone ? 'border-red-300' : 'border-gray-200'}`}
-                     placeholder="05XX XXX XX XX"
-                     value={formData.phone}
-                     onChange={(e) => updateData('phone', e.target.value)}
-                   />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input 
+                    type="tel" 
+                    className={`w-full p-3 pl-10 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none ${errors.phone ? 'border-red-300' : 'border-gray-200'}`}
+                    placeholder="05XX XXX XX XX"
+                    value={formData.phone}
+                    onChange={(e) => updateData('phone', e.target.value)}
+                  />
                 </div>
-                {errors.phone && <p className="text-red-500 text-xs mt-1">İletişim numarası zorunludur.</p>}
-             </div>
-          </div>
-          <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
-             <ShieldCheck size={14} className="text-green-600" />
-             <span>Kişisel verileriniz güvendedir ve sadece teklif verecek firmalarla paylaşılır.</span>
-          </div>
+                {errors.phone && <p className="text-red-500 text-xs mt-1">Telefon numarası zorunludur</p>}
+              </div>
+            </motion.div>
+          )}
        </div>
     </div>
   );
 
   const renderStep5 = () => (
-    <div className="text-center py-12">
+    <div className="text-center py-12 px-6">
       <motion.div 
          initial={{ scale: 0 }}
          animate={{ scale: 1 }}
@@ -430,16 +554,25 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome }) => {
       >
          <CheckCircle2 size={48} />
       </motion.div>
-      <h2 className="text-3xl font-bold text-gray-900 mb-4">Talebiniz Alındı!</h2>
+      <h2 className="text-3xl font-bold text-gray-900 mb-4">İşlem Başarılı!</h2>
       <p className="text-gray-500 max-w-md mx-auto mb-8">
-         Sayın <strong>{formData.firstName} {formData.lastName}</strong>, yol yardım talebiniz başarıyla oluşturuldu. Bölgedeki en uygun çekici ve kurtarma ekipleri size <strong>5 dakika içinde</strong> {formData.phone} numarasından dönüş yapacaktır.
+         Teklif talebiniz hizmet sağlayıcılara iletildi. Gelen teklifleri inceleyip size en uygun olanı seçebilirsiniz.
       </p>
-      <button 
-         onClick={() => onHome ? onHome() : window.location.href = '/'}
-         className="px-8 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-colors"
-      >
-         Ana Sayfaya Dön
-      </button>
+      
+      <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+        <button 
+           onClick={() => onViewOffers ? onViewOffers() : alert('Lütfen giriş yapın')}
+           className="flex-1 px-6 py-4 bg-brand-orange text-white rounded-xl font-bold hover:bg-brand-lightOrange transition-colors shadow-lg"
+        >
+           Tekliflerimi Gör
+        </button>
+        <button 
+           onClick={() => onHome ? onHome() : window.location.href = '/'}
+           className="flex-1 px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+        >
+           Ana Sayfa
+        </button>
+      </div>
     </div>
   );
 

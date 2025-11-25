@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface QuotePageProps {
   onHome: () => void;
+  onViewOffers?: () => void;
 }
 
 // --- MOCK DATA FOR LIVE ACTIVITY ---
@@ -158,7 +159,7 @@ const FaqSection = () => {
   );
 };
 
-const QuotePage: React.FC<QuotePageProps> = ({ onHome }) => {
+const QuotePage: React.FC<QuotePageProps> = ({ onHome, onViewOffers }) => {
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-8 px-4 md:px-8 relative">
       {/* Technical Background Grid Pattern */}
@@ -233,7 +234,7 @@ const QuotePage: React.FC<QuotePageProps> = ({ onHome }) => {
               </div>
 
               {/* Main Form Wizard */}
-              <QuoteWizard onHome={onHome} />
+              <QuoteWizard onHome={onHome} onViewOffers={onViewOffers} />
 
               {/* FAQ Section (Below Form) */}
               <FaqSection />

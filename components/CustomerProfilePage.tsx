@@ -12,6 +12,7 @@ interface CustomerProfilePageProps {
   onUpdate: (updated: Customer) => void;
   onLogout: () => void;
   onBackHome: () => void;
+  onViewOffers?: () => void;
 }
 
 // Mock Data for Extended Features
@@ -32,15 +33,20 @@ const MOCK_SAVED_ADDRESSES = [
   { id: 2, label: 'İş', type: 'work', address: 'Maslak Meydan Sok. Veko Giz Plaza', city: 'İstanbul', district: 'Sarıyer' }
 ];
 
-const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onUpdate, onLogout, onBackHome }) => {
+const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onUpdate, onLogout, onBackHome, onViewOffers }) => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Customer>(customer);
   const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'favorites' | 'addresses' | 'notifications' | 'security'>('profile');
   
   // Modals
   const [selectedOrder, setSelectedOrder] = useState<typeof MOCK_ORDERS[0] | null>(null);
+  const [selectedFavorite, setSelectedFavorite] = useState<typeof MOCK_FAVORITES[0] | null>(null);
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [favorites, setFavorites] = useState(MOCK_FAVORITES);
+  
+  // Address Form
+  const [addressForm, setAddressForm] = useState({ label: '', type: 'home', address: '', city: '', district: '' });
   
   // Notification Preferences
   const [notifications, setNotifications] = useState({
@@ -80,6 +86,20 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
     alert('Şifreniz başarıyla değiştirildi!');
     setShowChangePassword(false);
     setPasswordForm({ current: '', new: '', confirm: '' });
+  };
+
+  const handleRemoveFavorite = (id: number) => {
+    setFavorites(prev => prev.filter(f => f.id !== id));
+  };
+
+  const handleAddAddress = () => {
+    if (!addressForm.label || !addressForm.address || !addressForm.city || !addressForm.district) {
+      alert('Lütfen tüm alanları doldurun!');
+      return;
+    }
+    alert('Adres başarıyla eklendi!');
+    setShowAddAddress(false);
+    setAddressForm({ label: '', type: 'home', address: '', city: '', district: '' });
   };
 
   // Tab Navigation Component
@@ -123,9 +143,19 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
                     <div className="flex items-center gap-2 text-sm text-gray-600 truncate"><Mail size={14} className="text-brand-orange" /> <span className="truncate">{customer.email}</span></div>
                   )}
                 </div>
-                <div className="flex gap-2 mt-6 w-full">
-                  <button onClick={onBackHome} className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 transition-colors">Ana Sayfa</button>
-                  <button onClick={onLogout} className="flex-1 py-2.5 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-1"><LogOut size={14}/> Çıkış</button>
+                <div className="flex flex-col gap-2 mt-6 w-full">
+                  {onViewOffers && (
+                    <button 
+                      onClick={onViewOffers} 
+                      className="w-full py-3 rounded-xl bg-brand-orange text-white text-sm font-bold hover:bg-brand-lightOrange transition-colors shadow-lg"
+                    >
+                      📋 Tekliflerimi Gör
+                    </button>
+                  )}
+                  <div className="flex gap-2">
+                    <button onClick={onBackHome} className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 transition-colors">Ana Sayfa</button>
+                    <button onClick={onLogout} className="flex-1 py-2.5 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-1"><LogOut size={14}/> Çıkış</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -219,7 +249,7 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
               </div>
               <div className="space-y-4">
                 {MOCK_ORDERS.map(order => (
-                  <div key={order.id} className="p-5 rounded-xl border border-gray-100 hover:border-brand-orange hover:shadow-md transition-all cursor-pointer group">
+                  <div key={order.id} className="p-5 rounded-xl border border-gray-100 hover:border-brand-orange hover:shadow-md transition-all cursor-pointer group" onClick={() => setSelectedOrder(order)}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h4 className="font-bold text-gray-800 group-hover:text-brand-orange transition-colors">{order.service}</h4>
@@ -254,10 +284,10 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
               <h3 className="text-2xl font-display font-bold text-gray-900 mb-6">Favori Hizmet Sağlayıcılar</h3>
               <div className="space-y-4">
-                {MOCK_FAVORITES.length > 0 ? MOCK_FAVORITES.map(fav => (
+                {favorites.length > 0 ? favorites.map(fav => (
                   <div key={fav.id} className="flex items-center gap-4 p-5 rounded-xl border border-gray-100 hover:border-brand-orange hover:shadow-md transition-all group">
-                    <img src={fav.image} alt={fav.name} className="w-14 h-14 rounded-full object-cover border border-gray-100" />
-                    <div className="flex-1">
+                    <img src={fav.image} alt={fav.name} className="w-14 h-14 rounded-full object-cover border border-gray-100 cursor-pointer" onClick={() => setSelectedFavorite(fav)} />
+                    <div className="flex-1 cursor-pointer" onClick={() => setSelectedFavorite(fav)}>
                       <h4 className="font-bold text-gray-800 group-hover:text-brand-orange transition-colors">{fav.name}</h4>
                       <p className="text-xs text-gray-500">{fav.services}</p>
                       <div className="flex items-center gap-2 mt-1">
@@ -266,7 +296,7 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
                         <span className="text-xs text-gray-400">• {fav.location}</span>
                       </div>
                     </div>
-                    <button className="text-red-500 hover:text-red-600 p-2"><Heart size={20} fill="currentColor" /></button>
+                    <button onClick={() => handleRemoveFavorite(fav.id)} className="text-red-500 hover:text-red-600 p-2"><Heart size={20} fill="currentColor" /></button>
                   </div>
                 )) : (
                   <div className="text-center py-12">
@@ -410,6 +440,254 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
           </div>
         </div>
       </div>
+
+      {/* ORDER DETAIL MODAL */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedOrder(null)}>
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">{selectedOrder.service}</h3>
+                <p className="text-sm text-gray-500 mt-1">#{selectedOrder.id}</p>
+              </div>
+              <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={24} /></button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-50 rounded-xl">
+                  <p className="text-xs text-gray-500 mb-1">Durum</p>
+                  <span className={`text-sm font-bold px-3 py-1 rounded ${selectedOrder.status === 'Tamamlandı' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>{selectedOrder.status}</span>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-xl">
+                  <p className="text-xs text-gray-500 mb-1">Tutar</p>
+                  <p className="text-lg font-bold text-gray-900">{selectedOrder.amount > 0 ? `₺${selectedOrder.amount}` : '—'}</p>
+                </div>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 mb-2">Hizmet Sağlayıcı</p>
+                <p className="font-bold text-gray-900">{selectedOrder.provider}</p>
+                {selectedOrder.rating && (
+                  <div className="flex items-center gap-1 text-yellow-400 mt-2">
+                    {[...Array(selectedOrder.rating)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                  </div>
+                )}
+              </div>
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 mb-2">Konum Bilgileri</p>
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <MapPin size={16} className="text-brand-orange" />
+                  <span>{selectedOrder.from}</span>
+                </div>
+                {selectedOrder.to && (
+                  <div className="flex items-center gap-2 text-sm text-gray-700 mt-2">
+                    <ChevronRight size={16} className="text-gray-400" />
+                    <span>{selectedOrder.to}</span>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 mb-1">Tarih & Saat</p>
+                <p className="text-sm font-medium text-gray-900">{selectedOrder.date}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FAVORITE DETAIL MODAL */}
+      {selectedFavorite && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedFavorite(null)}>
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Hizmet Sağlayıcı Detayı</h3>
+              <button onClick={() => setSelectedFavorite(null)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={24} /></button>
+            </div>
+            <div className="flex items-center gap-4 mb-6">
+              <img src={selectedFavorite.image} alt={selectedFavorite.name} className="w-20 h-20 rounded-full object-cover border-2 border-gray-100" />
+              <div>
+                <h4 className="text-xl font-bold text-gray-900">{selectedFavorite.name}</h4>
+                <div className="flex items-center gap-2 mt-1">
+                  <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                  <span className="text-sm font-bold text-gray-700">{selectedFavorite.rating}</span>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 mb-1">Sunulan Hizmetler</p>
+                <p className="text-sm font-medium text-gray-900">{selectedFavorite.services}</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 mb-1">Konum</p>
+                <div className="flex items-center gap-2">
+                  <MapPin size={16} className="text-brand-orange" />
+                  <p className="text-sm font-medium text-gray-900">{selectedFavorite.location}</p>
+                </div>
+              </div>
+            </div>
+            <button className="w-full mt-6 py-3 bg-brand-orange text-white rounded-xl font-bold hover:bg-brand-lightOrange transition-colors">
+              Teklif İste
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ADD ADDRESS MODAL */}
+      {showAddAddress && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowAddAddress(false)}>
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Yeni Adres Ekle</h3>
+              <button onClick={() => setShowAddAddress(false)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={24} /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Adres Etiketi</label>
+                <input
+                  type="text"
+                  placeholder="Örn: Ev, İş"
+                  value={addressForm.label}
+                  onChange={e => setAddressForm(prev => ({ ...prev, label: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Adres Tipi</label>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setAddressForm(prev => ({ ...prev, type: 'home' }))}
+                    className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all ${addressForm.type === 'home' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'}`}
+                  >
+                    <Home size={18} /> Ev
+                  </button>
+                  <button
+                    onClick={() => setAddressForm(prev => ({ ...prev, type: 'work' }))}
+                    className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all ${addressForm.type === 'work' ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600'}`}
+                  >
+                    <Briefcase size={18} /> İş
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Şehir</label>
+                <select
+                  value={addressForm.city}
+                  onChange={e => setAddressForm(prev => ({ ...prev, city: e.target.value, district: '' }))}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
+                >
+                  <option value="">Şehir Seçiniz</option>
+                  {Object.keys(CITIES_WITH_DISTRICTS).map(city => <option key={city} value={city}>{city}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">İlçe</label>
+                <select
+                  value={addressForm.district}
+                  onChange={e => setAddressForm(prev => ({ ...prev, district: e.target.value }))}
+                  disabled={!addressForm.city}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none disabled:opacity-50"
+                >
+                  <option value="">İlçe Seçiniz</option>
+                  {addressForm.city && CITIES_WITH_DISTRICTS[addressForm.city].map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Detaylı Adres</label>
+                <textarea
+                  placeholder="Mahalle, sokak, bina no, daire no..."
+                  value={addressForm.address}
+                  onChange={e => setAddressForm(prev => ({ ...prev, address: e.target.value }))}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowAddAddress(false)} className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200">İptal</button>
+              <button onClick={handleAddAddress} className="flex-1 py-3 rounded-xl bg-brand-orange text-white font-bold hover:bg-brand-lightOrange">Kaydet</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHANGE PASSWORD MODAL */}
+      {showChangePassword && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowChangePassword(false)}>
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Şifre Değiştir</h3>
+              <button onClick={() => setShowChangePassword(false)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={24} /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Mevcut Şifre</label>
+                <div className="relative">
+                  <input
+                    type={showPassword.current ? 'text' : 'password'}
+                    value={passwordForm.current}
+                    onChange={e => setPasswordForm(prev => ({ ...prev, current: e.target.value }))}
+                    className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
+                  />
+                  <button
+                    onClick={() => setShowPassword(prev => ({ ...prev, current: !prev.current }))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword.current ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Yeni Şifre</label>
+                <div className="relative">
+                  <input
+                    type={showPassword.new ? 'text' : 'password'}
+                    value={passwordForm.new}
+                    onChange={e => setPasswordForm(prev => ({ ...prev, new: e.target.value }))}
+                    className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
+                  />
+                  <button
+                    onClick={() => setShowPassword(prev => ({ ...prev, new: !prev.new }))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword.new ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Yeni Şifre (Tekrar)</label>
+                <div className="relative">
+                  <input
+                    type={showPassword.confirm ? 'text' : 'password'}
+                    value={passwordForm.confirm}
+                    onChange={e => setPasswordForm(prev => ({ ...prev, confirm: e.target.value }))}
+                    className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
+                  />
+                  <button
+                    onClick={() => setShowPassword(prev => ({ ...prev, confirm: !prev.confirm }))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword.confirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+              {passwordForm.new && passwordForm.new.length < 6 && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle size={14} /> Şifre en az 6 karakter olmalıdır
+                </p>
+              )}
+              {passwordForm.confirm && passwordForm.new !== passwordForm.confirm && (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle size={14} /> Şifreler eşleşmiyor
+                </p>
+              )}
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowChangePassword(false)} className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200">İptal</button>
+              <button onClick={handlePasswordChange} className="flex-1 py-3 rounded-xl bg-brand-orange text-white font-bold hover:bg-brand-lightOrange">Değiştir</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
