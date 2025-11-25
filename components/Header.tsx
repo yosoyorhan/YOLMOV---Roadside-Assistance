@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLoginClick, onAgencyLogin
             onClick={() => onNavigate('home')}
           >
             <img 
-              src="/assets/logo-dark.svg" 
+              src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-logo-cutter.png" 
               alt="Yolmov Logo" 
               className="h-10 w-auto object-contain"
             />

@@ -17,7 +17,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onSelectTab, onL
     <div className={`flex flex-col h-full bg-slate-900 text-white w-64 ${mobile ? 'shadow-2xl' : ''}`}>      
       <div className="p-6 border-b border-slate-800">
         <div className="cursor-pointer" onClick={() => onSelectTab('overview')}>
-          <img src="/assets/logo-light.svg" alt="YOLMOV Admin" className="h-10 w-auto object-contain mb-2" />
+          <img src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-logo-cutter-beyaz.png" alt="YOLMOV Admin" className="h-10 w-auto object-contain mb-2" />
           <p className="text-xs text-slate-400 text-center">Admin Panel</p>
         </div>
       </div>

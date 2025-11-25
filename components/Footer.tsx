@@ -23,7 +23,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div>
             <div className="mb-6 cursor-pointer" onClick={() => handleNavigation('home')}>
               <img 
-                src="/assets/logo-light.svg" 
+                src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-logo-cutter-beyaz.png" 
                 alt="Yolmov Logo" 
                 className="h-10 w-auto object-contain"
               />

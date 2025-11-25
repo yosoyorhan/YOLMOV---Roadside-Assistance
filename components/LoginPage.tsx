@@ -60,7 +60,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ userType, onNavigateToRegister, o
           <div className="relative z-10">
             <div className="mb-8">
               <img 
-                src="/assets/logo-light.svg" 
+                src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-logo-cutter-beyaz.png" 
                 alt="Yolmov Logo" 
                 className="h-8 w-auto object-contain"
               />
