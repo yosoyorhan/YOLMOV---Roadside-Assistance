@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, Clock, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Mail, Send, Clock, MessageCircle, Headphones } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ContactPage: React.FC = () => {
@@ -23,23 +23,23 @@ const ContactPage: React.FC = () => {
 
   const contactInfo = [
     {
-      icon: Phone,
-      title: 'Telefon',
-      details: ['0850 XXX XX XX', 'Pazartesi - Pazar: 7/24'],
-      color: 'text-blue-600',
-      bg: 'bg-blue-50'
-    },
-    {
       icon: Mail,
       title: 'E-Posta',
-      details: ['destek@yolmov.com', 'info@yolmov.com'],
+      details: ['destek@yolmov.com', 'Tüm sorularınız için'],
       color: 'text-orange-600',
       bg: 'bg-orange-50'
     },
     {
-      icon: MapPin,
-      title: 'Adres',
-      details: ['Levent Mahallesi, Aytar Caddesi', 'Şişli / İstanbul, Türkiye'],
+      icon: MessageCircle,
+      title: 'Canlı Destek',
+      details: ['7/24 Anlık Destek', 'Hızlı çözüm için'],
+      color: 'text-blue-600',
+      bg: 'bg-blue-50'
+    },
+    {
+      icon: Headphones,
+      title: 'İletişim Formu',
+      details: ['Mesaj gönderin', 'En kısa sürede dönüş'],
       color: 'text-green-600',
       bg: 'bg-green-50'
     },
@@ -50,13 +50,6 @@ const ContactPage: React.FC = () => {
       color: 'text-purple-600',
       bg: 'bg-purple-50'
     }
-  ];
-
-  const socialMedia = [
-    { icon: Facebook, label: 'Facebook', url: '#', color: 'hover:text-blue-600' },
-    { icon: Twitter, label: 'Twitter', url: '#', color: 'hover:text-sky-500' },
-    { icon: Instagram, label: 'Instagram', url: '#', color: 'hover:text-pink-600' },
-    { icon: Linkedin, label: 'LinkedIn', url: '#', color: 'hover:text-blue-700' }
   ];
 
   return (
@@ -197,45 +190,34 @@ const ContactPage: React.FC = () => {
               viewport={{ once: true }}
               className="space-y-6"
             >
-              {/* Map */}
-              <div className="bg-white rounded-3xl p-2 shadow-sm border border-gray-100 overflow-hidden">
-                <div className="relative h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin size={48} className="mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-600 font-medium">Harita Entegrasyonu</p>
-                    <p className="text-sm text-gray-500 mt-2">Google Maps yakında eklenecek</p>
-                  </div>
+              {/* Canlı Destek Banner */}
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 text-white">
+                <div className="flex items-center gap-3 mb-4">
+                  <Headphones size={32} />
+                  <h3 className="text-2xl font-bold">Canlı Destek</h3>
                 </div>
+                <p className="text-blue-100 mb-6">
+                  Sorularınız için 7/24 canlı destek hattımızdan anında yanıt alabilirsiniz.
+                </p>
+                <button className="px-6 py-3 bg-white text-blue-600 rounded-xl font-bold hover:scale-105 transition-transform">
+                  Canlı Desteğe Bağlan
+                </button>
               </div>
 
-              {/* Social Media */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Sosyal Medya</h3>
-                <p className="text-gray-600 mb-6 text-sm">Bizi sosyal medyada takip edin, haberdar olun!</p>
-                <div className="flex gap-4">
-                  {socialMedia.map((social) => (
-                    <a
-                      key={social.label}
-                      href={social.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-600 ${social.color} transition-all hover:scale-110 hover:shadow-md`}
-                      aria-label={social.label}
-                    >
-                      <social.icon size={24} />
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick Info */}
+              {/* Acil Durum Banner */}
               <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl p-8 text-white">
                 <h3 className="text-2xl font-bold mb-4">Acil Durum?</h3>
                 <p className="text-orange-100 mb-6">
-                  Yolda kaldınız mı? Hemen bize ulaşın, en yakın yardım ekibini size yönlendirelim.
+                  Yolda kaldınız mı? Hemen platform üzerinden teklif isteyin, en yakın yardım ekibini size yönlendirelim.
                 </p>
-                <button className="px-6 py-3 bg-white text-brand-orange rounded-xl font-bold hover:scale-105 transition-transform">
-                  0850 XXX XX XX
+                <button 
+                  onClick={() => {
+                    const event = new CustomEvent('yolmov:navigate', { detail: { page: 'quote' } });
+                    window.dispatchEvent(event);
+                  }}
+                  className="px-6 py-3 bg-white text-brand-orange rounded-xl font-bold hover:scale-105 transition-transform"
+                >
+                  Hemen Teklif Al
                 </button>
               </div>
             </motion.div>

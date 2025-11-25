@@ -219,21 +219,22 @@ const ProviderDetailPage: React.FC<ProviderDetailPageProps> = ({ provider, onBac
                 
                 <div className="bg-white rounded-3xl p-6 shadow-lg shadow-brand-orange/5 border border-brand-orange/10">
                    <div className="text-center mb-6">
-                      <p className="text-gray-500 text-sm mb-1">Tahmini Başlangıç Fiyatı</p>
-                      <div className="flex items-center justify-center gap-1 text-brand-dark">
-                         <span className="text-4xl font-display font-bold">{provider.priceStart}</span>
-                         <span className="text-xl font-semibold">₺</span>
-                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Hemen Teklif Alın</h3>
+                      <p className="text-sm text-gray-500">Detaylı fiyat bilgisi için teklif isteği gönderin</p>
                    </div>
 
-                   <div className="space-y-3 mb-6">
-                      <div className="flex justify-between text-sm">
-                         <span className="text-gray-500">Mesafe Ücreti</span>
-                         <span className="font-semibold">Dahil Değil</span>
+                   <div className="space-y-3 mb-6 bg-gray-50 rounded-xl p-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                         <CheckCircle2 size={16} className="text-green-500" />
+                         <span>Ücretsiz Teklif</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                         <span className="text-gray-500">Hizmet Bedeli</span>
-                         <span className="font-semibold text-green-600">Ücretsiz</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                         <CheckCircle2 size={16} className="text-green-500" />
+                         <span>Hızlı Yanıt Garantisi</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                         <CheckCircle2 size={16} className="text-green-500" />
+                         <span>Net Fiyat, Ek Ücret Yok</span>
                       </div>
                    </div>
 
@@ -241,10 +242,10 @@ const ProviderDetailPage: React.FC<ProviderDetailPageProps> = ({ provider, onBac
                       onClick={onBook}
                       className="w-full py-4 bg-brand-orange text-white rounded-xl font-bold shadow-lg shadow-orange-200 hover:bg-brand-lightOrange transition-all transform hover:-translate-y-1 active:scale-95 mb-3"
                    >
-                      Rezervasyon İsteği Gönder
+                      Teklif Al
                    </button>
                    <p className="text-xs text-center text-gray-400 px-4">
-                      Sürücü isteğini onaylayana kadar herhangi bir ödeme alınmaz.
+                      Teklifi onaylayana kadar herhangi bir ödeme alınmaz.
                    </p>
                 </div>
 

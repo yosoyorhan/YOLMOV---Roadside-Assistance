@@ -9,7 +9,6 @@ const ServicesPage: React.FC = () => {
       title: 'Çekici Hizmeti',
       desc: 'Aracınız çalışmıyorsa, istediğiniz adrese güvenli şekilde çekici ile taşıma hizmeti.',
       features: ['7/24 Ulaşılabilir', 'Sigortalı Taşıma', 'Hızlı Müdahale', 'Şeffaf Fiyatlandırma'],
-      priceRange: '₺500 - ₺2000',
       icon_bg: 'bg-orange-100',
       icon_color: 'text-brand-orange'
     },
@@ -18,7 +17,6 @@ const ServicesPage: React.FC = () => {
       title: 'Akü Takviyesi',
       desc: 'Aküsü biten aracınıza anında akü takviye hizmeti ile yola devam edin.',
       features: ['15 Dakikada Çözüm', 'Profesyonel Ekip', 'Güvenli Takviye', 'Uygun Fiyat'],
-      priceRange: '₺200 - ₺500',
       icon_bg: 'bg-blue-100',
       icon_color: 'text-blue-600'
     },
@@ -27,7 +25,6 @@ const ServicesPage: React.FC = () => {
       title: 'Lastik Değişimi',
       desc: 'Patlayen veya hasar gören lastiğinizi yol kenarında profesyonelce değiştiriyoruz.',
       features: ['Hızlı Servis', 'Tüm Araç Tipleri', 'Güvenli Uygulama', 'Anında Çözüm'],
-      priceRange: '₺150 - ₺400',
       icon_bg: 'bg-green-100',
       icon_color: 'text-green-600'
     },
@@ -36,7 +33,6 @@ const ServicesPage: React.FC = () => {
       title: 'Yakıt Desteği',
       desc: 'Yakıtınız bittiyse, bulunduğunuz noktaya yakıt getirme hizmeti sunuyoruz.',
       features: ['Hızlı Teslimat', 'Kaliteli Yakıt', 'Güvenli Nakliye', 'Acil Durum Çözümü'],
-      priceRange: '₺250 - ₺600',
       icon_bg: 'bg-yellow-100',
       icon_color: 'text-yellow-600'
     },
@@ -45,7 +41,6 @@ const ServicesPage: React.FC = () => {
       title: 'Oto Kurtarma',
       desc: 'Kazaya karışan veya hasar gören aracınız için kapsamlı oto kurtarma hizmeti.',
       features: ['Deneyimli Ekip', 'Özel Ekipman', 'Sigorta Desteği', 'Kapsamlı Hizmet'],
-      priceRange: '₺800 - ₺3000',
       icon_bg: 'bg-red-100',
       icon_color: 'text-red-600'
     }
@@ -125,10 +120,15 @@ const ServicesPage: React.FC = () => {
                   ))}
                 </ul>
 
-                <div className="pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-2">Ortalama Fiyat Aralığı</p>
-                  <p className="text-xl font-bold text-brand-orange">{service.priceRange}</p>
-                </div>
+                <button 
+                  onClick={() => {
+                    const event = new CustomEvent('yolmov:navigate', { detail: { page: 'quote' } });
+                    window.dispatchEvent(event);
+                  }}
+                  className="w-full px-6 py-3 bg-brand-orange text-white rounded-xl font-bold hover:bg-orange-600 transition-colors"
+                >
+                  Hizmet Talep Et
+                </button>
               </motion.div>
             ))}
           </div>
@@ -176,7 +176,13 @@ const ServicesPage: React.FC = () => {
           <p className="text-xl text-orange-100 mb-8">
             İhtiyacınıza uygun hizmeti seçin, en yakın sağlayıcıdan teklif alın.
           </p>
-          <button className="px-8 py-4 bg-white text-brand-orange rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all">
+          <button 
+            onClick={() => {
+              const event = new CustomEvent('yolmov:navigate', { detail: { page: 'quote' } });
+              window.dispatchEvent(event);
+            }}
+            className="px-8 py-4 bg-white text-brand-orange rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+          >
             Hizmet Talep Et
           </button>
         </div>

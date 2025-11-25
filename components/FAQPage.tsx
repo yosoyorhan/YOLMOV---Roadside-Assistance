@@ -54,19 +54,19 @@ const FAQPage: React.FC = () => {
       questions: [
         {
           q: 'Ödeme nasıl yapılır?',
-          a: 'Hizmet tamamlandıktan sonra kredi kartı, banka kartı veya nakit ile ödeme yapabilirsiniz. Platform üzerinden güvenli online ödeme imkanı da sunulmaktadır. Ödeme yöntemleri hizmet sağlayıcıya göre değişiklik gösterebilir.'
+          a: 'YOLMOV bir aracı platformdur ve kullanıcılardan herhangi bir ödeme almaz. Hizmet bedeli doğrudan müşteri ile partner arasında halledilir. Ödeme yöntemi (nakit, kredi kartı, banka kartı) hizmet sağlayıcı partner tarafından belirlenir ve hizmet tamamlandıktan sonra doğrudan kendisine yapılır.'
         },
         {
-          q: 'Ödeme güvenli mi?',
-          a: 'Tüm online ödemeler 3D Secure güvenlik protokolü ile korunmaktadır. Kart bilgileriniz şifrelenerek saklanır ve hiçbir şekilde üçüncü taraflarla paylaşılmaz.'
+          q: 'Platform kullanım ücreti var mı?',
+          a: 'Hayır. YOLMOV platformunu kullanmak tamamen ücretsizdir. Teklif almak, karşılaştırmak ve hizmet talep etmek için herhangi bir ücret ödemeniz gerekmez. Sadece aldığınız yol yardım hizmeti için partner ile anlaştığınız tutarı ödersiniz.'
         },
         {
           q: 'Fatura alabilir miyim?',
-          a: 'Evet, tamamlanan her hizmet için e-fatura veya kağıt fatura talep edebilirsiniz. Fatura bilgilerinizi profilinizden güncelleyebilirsiniz.'
+          a: 'Evet. Hizmet faturası hizmet sağlayıcı partner tarafından düzenlenir. E-fatura veya kağıt fatura tercihinizi hizmet öncesinde veya sonrasında partner ile paylaşabilirsiniz.'
         },
         {
-          q: 'İptal ve iade politikası nedir?',
-          a: 'Hizmet sağlayıcı yola çıkmadan önce talebinizi ücretsiz iptal edebilirsiniz. Hizmet sağlayıcı yola çıktıktan sonra iptal durumunda kısmi ücret tahsil edilebilir. İade koşulları için müşteri hizmetleri ile iletişime geçebilirsiniz.'
+          q: 'İptal durumunda ücret alınır mı?',
+          a: 'İptal politikaları hizmet sağlayıcı partnere göre değişiklik gösterebilir. Genellikle partner yola çıkmadan önce yapılan iptallerde ücret alınmaz. Partner yola çıktıktan sonra iptal durumunda kısmi ücret talep edilebilir. Detaylar için partner ile iletişime geçmeniz önerilir.'
         }
       ]
     },

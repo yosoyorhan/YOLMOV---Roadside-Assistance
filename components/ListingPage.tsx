@@ -67,7 +67,7 @@ const ProviderCard = ({ provider, index, onClick }: { provider: Provider, index:
           </div>
       </div>
 
-      {/* RIGHT: Detail Button */}
+      {/* RIGHT: Select Button */}
       <div className="w-full md:w-auto shrink-0">
           <button 
               onClick={(e) => {
@@ -76,7 +76,7 @@ const ProviderCard = ({ provider, index, onClick }: { provider: Provider, index:
               }}
               className="w-full bg-brand-orange text-white px-6 py-3 rounded-xl font-bold hover:bg-brand-lightOrange transition-colors shadow-md shadow-orange-100 flex items-center justify-center gap-2"
           >
-              Detay <ChevronRight size={18} />
+              Seç <ChevronRight size={18} />
           </button>
       </div>
 

@@ -63,6 +63,10 @@ const Campaigns: React.FC = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
+              onClick={() => {
+                const event = new CustomEvent('yolmov:navigate', { detail: { page: 'campaigns' } });
+                window.dispatchEvent(event);
+              }}
               className="min-w-[85vw] md:min-w-[calc(50%-12px)] lg:min-w-[calc(33.33%-16px)] snap-center group relative h-[450px] rounded-3xl overflow-hidden cursor-pointer shadow-md"
             >
               {/* Background Image with Zoom Effect */}

@@ -24,12 +24,16 @@ import ContactPage from './components/ContactPage';
 import CareerPage from './components/CareerPage';
 import BlogPage from './components/BlogPage';
 import NotFoundPage from './components/NotFoundPage';
+import CampaignsPage from './components/CampaignsPage';
+import PrivacyPolicyPage from './components/PrivacyPolicyPage';
+import TermsOfServicePage from './components/TermsOfServicePage';
+import CookieConsentBanner from './components/CookieConsentBanner';
 import { Provider, Customer } from './types';
 import { initDemoData } from './services/demoData';
 
 function App() {
   // Expanded routing state
-  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard' | 'not-found'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog' | 'campaigns' | 'privacy-policy' | 'terms-of-service' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard' | 'not-found'>('home');
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(() => {
     const saved = localStorage.getItem('yolmov_customer');
@@ -178,6 +182,12 @@ function App() {
         ) : (
           <div className="flex items-center justify-center h-[50vh]">Provider not found</div>
         );
+      case 'campaigns':
+        return <CampaignsPage onBack={() => setCurrentPage('home')} />;
+      case 'privacy-policy':
+        return <PrivacyPolicyPage onBack={() => setCurrentPage('home')} />;
+      case 'terms-of-service':
+        return <TermsOfServicePage onBack={() => setCurrentPage('home')} />;
       case 'not-found':
         return <NotFoundPage onNavigateHome={() => setCurrentPage('home')} />;
       case 'home':
@@ -218,6 +228,7 @@ function App() {
         <Footer onNavigate={(page) => setCurrentPage(page)} />
       )}
       
+      <CookieConsentBanner />
     </div>
   );
 }

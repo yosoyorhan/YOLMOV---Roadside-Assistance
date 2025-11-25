@@ -106,14 +106,14 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
   const TabButton = ({ id, label, icon: Icon }: { id: typeof activeTab, label: string, icon: any }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all ${
+      className={`flex items-center gap-2 px-3 md:px-4 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
         activeTab === id 
           ? 'bg-brand-orange text-white shadow-md' 
           : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
       }`}
     >
-      <Icon size={18} />
-      <span className="hidden md:inline">{label}</span>
+      <Icon size={16} className="md:w-[18px] md:h-[18px]" />
+      <span>{label}</span>
     </button>
   );
 
@@ -163,8 +163,13 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
 
           {/* Right Column: Tabs & Content */}
           <div className="flex-1">
-            {/* Tab Navigation */}
-            <div className="flex flex-wrap gap-2 mb-6">
+            {/* Tab Navigation - Horizontal Scroll on Mobile */}
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <style>{`
+                div::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
               <TabButton id="profile" label="Profil" icon={User} />
               <TabButton id="orders" label="Taleplerim" icon={Package} />
               <TabButton id="favorites" label="Favoriler" icon={Heart} />

@@ -44,6 +44,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   
   // Form Data State
   const [formData, setFormData] = useState({
@@ -134,6 +135,69 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
     if (errors[key]) {
       setErrors(prev => ({ ...prev, [key]: false }));
     }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Tarayıcınız konum özelliğini desteklemiyor.');
+      return;
+    }
+
+    setIsLoadingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          // Reverse geocoding with Nominatim (free, no API key needed)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=tr`
+          );
+          const data = await response.json();
+          
+          // Extract city and district from address
+          const address = data.address || {};
+          let city = address.province || address.state || address.city;
+          let district = address.county || address.town || address.suburb || address.district;
+          
+          // Match city with our CITIES_WITH_DISTRICTS
+          const matchedCity = Object.keys(CITIES_WITH_DISTRICTS).find(
+            c => c.toLowerCase() === city?.toLowerCase()
+          );
+          
+          if (matchedCity) {
+            updateData('fromCity', matchedCity);
+            
+            // Try to match district
+            const districts = CITIES_WITH_DISTRICTS[matchedCity];
+            const matchedDistrict = districts.find(
+              d => d.toLowerCase().includes(district?.toLowerCase()) || 
+                   district?.toLowerCase().includes(d.toLowerCase())
+            );
+            
+            if (matchedDistrict) {
+              updateData('fromDistrict', matchedDistrict);
+            }
+          }
+          
+          setIsLoadingLocation(false);
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+          alert('Konum bilgisi alınamadı. Lütfen manuel olarak seçin.');
+          setIsLoadingLocation(false);
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert('Konum erişimi reddedildi veya alınamadı. Lütfen manuel olarak seçin.');
+        setIsLoadingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   };
 
   // Render Functions for Each Step
@@ -236,10 +300,21 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
       <div className="space-y-6">
         {/* FROM LOCATION */}
         <div className="bg-gray-50 p-6 rounded-2xl space-y-4">
-          <h4 className="font-bold text-gray-900 flex items-center gap-2">
-            <MapPin size={18} className="text-brand-orange" />
-            Nereden Alınacak?
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-bold text-gray-900 flex items-center gap-2">
+              <MapPin size={18} className="text-brand-orange" />
+              Nereden Alınacak?
+            </h4>
+            <button
+              type="button"
+              onClick={handleUseCurrentLocation}
+              disabled={isLoadingLocation}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Navigation size={16} className={isLoadingLocation ? 'animate-spin' : ''} />
+              {isLoadingLocation ? 'Alınıyor...' : 'Mevcut Konumu Kullan'}
+            </button>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
