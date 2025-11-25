@@ -10,7 +10,7 @@ import {
   ArrowDownLeft, CreditCard, Banknote, Landmark, Copy, PieChart, Info,
   UserCog, FileCheck, Upload, Trash2, Save, Briefcase, Mail,
   Truck, Headphones, Plus, PenTool, Wrench, LifeBuoy, Route, MoreHorizontal,
-  Grid, LayoutList, Zap, Send, Star, ThumbsUp, ThumbsDown, Building, ShieldCheck, CheckCircle2
+  Grid, LayoutList, Zap, Send, Star, ThumbsUp, ThumbsDown, Building, ShieldCheck, CheckCircle2, HelpCircle
 } from 'lucide-react';
 import { JobRequest, Request } from '../types';
 import { MOCK_PARTNER_REQUESTS, CITIES_WITH_DISTRICTS } from '../constants';
@@ -79,62 +79,90 @@ const MOCK_REVIEWS = [
   {
     id: 'REV-001',
     jobId: 'JOB-4923',
-    customerName: 'Ahmet Y.',
-    customerPhone: '0555 *** ** 12',
+    customerName: 'Ahmet Yılmaz',
+    customerPhone: '0555 123 45 67',
     service: 'Çekici Hizmeti',
     date: '22 Kas 2023, 15:30',
     rating: 5,
     comment: 'Çok hızlı geldi, işini profesyonelce yaptı. Teşekkürler!',
-    tags: ['Kibar Müşteri', 'Sorunsuz Ödeme', 'Bahşiş Bıraktı'],
-    isVisible: true
+    tags: ['Kibar Müşteri', 'Sorunsuz Ödeme', 'Bahşiş Bıraktı']
   },
   {
     id: 'REV-002',
     jobId: 'JOB-4920',
-    customerName: 'M*** K***',
-    customerPhone: '**********',
+    customerName: 'Mehmet K.',
+    customerPhone: '0532 987 65 43',
     service: 'Akü Takviyesi',
     date: '19 Kas 2023, 10:15',
     rating: 2,
     comment: 'Geç geldi, müşteri hizmetleri vasat.',
-    tags: ['Geç Geldi', 'İletişim Zor'],
-    isVisible: false
+    tags: ['Geç Geldi', 'İletişim Zor']
   },
   {
     id: 'REV-003',
     jobId: 'JOB-4918',
-    customerName: 'Selin K.',
-    customerPhone: '0532 *** ** 45',
+    customerName: 'Selin Kaya',
+    customerPhone: '0532 456 78 90',
     service: 'Çekici Hizmeti',
     date: '15 Kas 2023, 14:00',
     rating: 4,
     comment: 'Gayet iyiydi, fiyat biraz yüksek geldi ama memnunum.',
-    tags: ['Anlayışlı', 'İletişim Kolaydı'],
-    isVisible: true
+    tags: ['Anlayışlı', 'İletişim Kolaydı']
   },
   {
     id: 'REV-004',
     jobId: 'JOB-4915',
-    customerName: 'B*** Y***',
-    customerPhone: '**********',
+    customerName: 'Burak Y.',
+    customerPhone: '0545 321 98 76',
     service: 'Çekici Hizmeti',
     date: '12 Kas 2023, 09:30',
     rating: 1,
     comment: 'Çok kötü bir deneyimdi, asla tavsiye etmem.',
-    tags: ['Kaba Davranış', 'Ödeme Sorunu'],
-    isVisible: false
+    tags: ['Kaba Davranış', 'Ödeme Sorunu']
   },
   {
     id: 'REV-005',
     jobId: 'JOB-4912',
-    customerName: 'Zeynep A.',
-    customerPhone: '0544 *** ** 78',
+    customerName: 'Zeynep Aydın',
+    customerPhone: '0544 789 01 23',
     service: 'Lastik Değişimi',
     date: '10 Kas 2023, 16:45',
     rating: 5,
     comment: 'Hayat kurtardınız! Çok teşekkürler, kesinlikle tavsiye ederim.',
-    tags: ['Konum Doğruydu', 'Sorunsuz Ödeme'],
-    isVisible: true
+    tags: ['Konum Doğruydu', 'Sorunsuz Ödeme']
+  },
+  {
+    id: 'REV-006',
+    jobId: 'JOB-4910',
+    customerName: 'Caner Erkin',
+    customerPhone: '0533 654 32 10',
+    service: 'Yakıt Desteği',
+    date: '08 Kas 2023, 11:20',
+    rating: 5,
+    comment: 'Çok hızlı ve profesyonel hizmet. Teşekkürler!',
+    tags: ['Kibar Müşteri', 'Konum Doğruydu']
+  },
+  {
+    id: 'REV-007',
+    jobId: 'JOB-4908',
+    customerName: 'Elif Demir',
+    customerPhone: '0542 111 22 33',
+    service: 'Çekici Hizmeti',
+    date: '05 Kas 2023, 08:45',
+    rating: 3,
+    comment: 'İdare eder, fiyat biraz yüksek.',
+    tags: ['Ödeme Sorunu']
+  },
+  {
+    id: 'REV-008',
+    jobId: 'JOB-4905',
+    customerName: 'Deniz Yıldız',
+    customerPhone: '0535 999 88 77',
+    service: 'Lastik Değişimi',
+    date: '02 Kas 2023, 17:30',
+    rating: 4,
+    comment: 'Güzel hizmet, memnun kaldım.',
+    tags: ['Sorunsuz Ödeme', 'İletişim Kolaydı']
   }
 ];
 
@@ -1354,110 +1382,149 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   };
 
   // ============== DEĞERLENDİRMELER TAB ==============
-  const renderReviewsTab = () => (
-    <div className="p-4 md:p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">Müşteri Değerlendirmeleri</h2>
-          <p className="text-sm text-slate-500">Aldığınız puanlar ve yorumlar</p>
-        </div>
-        <div className="bg-slate-800 rounded-2xl p-4 text-white">
-          <div className="flex items-center gap-2">
-            <Star size={24} fill="currentColor" />
-            <span className="text-3xl font-bold">4.2</span>
+  const renderReviewsTab = () => {
+    const avgRating = MOCK_REVIEWS.reduce((sum, r) => sum + r.rating, 0) / MOCK_REVIEWS.length;
+    
+    return (
+      <div className="p-4 md:p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">Müşteri Değerlendirmeleri</h2>
+            <p className="text-sm text-slate-500">Aldığınız puanlar ve yorumlar</p>
           </div>
-          <p className="text-xs text-slate-300 mt-1">{MOCK_REVIEWS.length} Değerlendirme</p>
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-4 text-white shadow-lg">
+            <div className="flex items-center gap-2 mb-1">
+              <Star size={24} fill="currentColor" className="text-yellow-400" />
+              <span className="text-3xl font-bold">{avgRating.toFixed(1)}</span>
+            </div>
+            <p className="text-xs text-slate-300">{MOCK_REVIEWS.length} Değerlendirme</p>
+          </div>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className="flex gap-2">
-        <button className="px-4 py-2 bg-slate-800 text-white rounded-xl text-sm font-bold">Tümü</button>
-        <button className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50">5 Yıldız</button>
-        <button className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50">Düşük Puan</button>
-      </div>
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-slate-200 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Star size={16} fill="#22c55e" className="text-green-500" />
+              <span className="text-xs font-bold text-slate-500">5 Yıldız</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{MOCK_REVIEWS.filter(r => r.rating === 5).length}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Star size={16} fill="#3b82f6" className="text-blue-500" />
+              <span className="text-xs font-bold text-slate-500">4 Yıldız</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{MOCK_REVIEWS.filter(r => r.rating === 4).length}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Star size={16} fill="#f59e0b" className="text-amber-500" />
+              <span className="text-xs font-bold text-slate-500">3 Yıldız</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{MOCK_REVIEWS.filter(r => r.rating === 3).length}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Star size={16} fill="#ef4444" className="text-red-500" />
+              <span className="text-xs font-bold text-slate-500">≤2 Yıldız</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{MOCK_REVIEWS.filter(r => r.rating <= 2).length}</p>
+          </div>
+        </div>
 
-      {/* Reviews List */}
-      <div className="space-y-4">
-        {MOCK_REVIEWS.map(review => (
-          <div key={review.id} className={`bg-white rounded-2xl border-2 p-6 transition-all ${
-            review.rating >= 4 ? 'border-slate-200' : 'border-red-200 bg-red-50/30'
-          }`}>
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
-                  review.rating >= 4 ? 'bg-slate-700' : 'bg-red-500'
-                }`}>
-                  {review.rating >= 4 ? review.customerName.charAt(0) : '?'}
+        {/* Reviews List */}
+        <div className="space-y-4">
+          {MOCK_REVIEWS.map(review => {
+            const isLowRating = review.rating < 3;
+            const displayName = isLowRating ? 'Müşteri ***' : review.customerName;
+            const displayPhone = isLowRating ? '**********' : review.customerPhone;
+            
+            return (
+              <motion.div 
+                key={review.id} 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`bg-white rounded-2xl border-2 p-6 transition-all hover:shadow-md ${
+                  isLowRating ? 'border-red-200 bg-red-50/30' : 'border-slate-200'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ${
+                      isLowRating ? 'bg-red-500' : 'bg-slate-700'
+                    }`}>
+                      {isLowRating ? '?' : review.customerName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900">{displayName}</h3>
+                      <p className="text-xs text-slate-500">{review.date} • {review.service}</p>
+                      {isLowRating ? (
+                        <p className="text-xs text-red-600 mt-1 flex items-center gap-1 font-medium">
+                          <ShieldAlert size={12} />
+                          Bilgiler gizlendi
+                        </p>
+                      ) : (
+                        <p className="text-xs text-slate-400 mt-1">{displayPhone}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        size={18} 
+                        fill={i < review.rating ? "#FFA500" : "none"} 
+                        className={i < review.rating ? "text-orange-500" : "text-slate-300"}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-slate-800">
-                    {review.rating >= 4 ? review.customerName : review.customerName}
-                  </h3>
-                  <p className="text-xs text-slate-500">{review.date} • {review.service}</p>
-                  {review.rating >= 4 ? (
-                    <p className="text-xs text-slate-400 mt-1">{review.customerPhone}</p>
-                  ) : (
-                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                      <ShieldAlert size={12} />
-                      Düşük puan nedeniyle gizlendi
-                    </p>
+
+                <p className="text-sm text-slate-700 mb-4 leading-relaxed">{review.comment}</p>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {review.tags.map((tag, idx) => (
+                    <span 
+                      key={idx} 
+                      className={`text-xs px-3 py-1.5 rounded-full font-bold ${
+                        POSITIVE_RATING_TAGS.includes(tag)
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                  <span className="text-xs text-slate-400 font-mono">İş No: #{review.jobId}</span>
+                  {isLowRating && (
+                    <button className="text-xs text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                      <HelpCircle size={14} /> İtiraz Et
+                    </button>
                   )}
                 </div>
-              </div>
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i} 
-                    size={18} 
-                    fill={i < review.rating ? "#FFA500" : "none"} 
-                    className={i < review.rating ? "text-orange-500" : "text-slate-300"}
-                  />
-                ))}
-              </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Info Box */}
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-5">
+          <div className="flex gap-3">
+            <Info size={22} className="text-blue-600 shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-900">
+              <p className="font-bold mb-2">📋 Düşük Puanlı Değerlendirmeler Hakkında</p>
+              <p className="leading-relaxed">3 yıldız ve altı puan alan işlerde müşteri bilgileri (isim ve telefon) gizlenir. Bu puanlar ortalamanıza dahildir ancak iletişim bilgilerine erişiminiz kısıtlanır. Bu, her iki tarafın da güvenliği için alınan bir önlemdir.</p>
             </div>
-
-            <p className="text-sm text-slate-700 mb-4">{review.comment}</p>
-
-            <div className="flex flex-wrap gap-2">
-              {review.tags.map((tag, idx) => (
-                <span 
-                  key={idx} 
-                  className={`text-xs px-3 py-1 rounded-full font-bold ${
-                    POSITIVE_RATING_TAGS.includes(tag)
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
-              <span className="text-xs text-slate-400">İş No: #{review.jobId}</span>
-              {review.rating < 4 && (
-                <button className="text-xs text-slate-500 hover:text-slate-700 font-bold flex items-center gap-1">
-                  <HelpCircle size={14} /> İtiraz Et
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Info Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <div className="flex gap-3">
-          <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
-            <p className="font-bold mb-1">Düşük Puanlı Değerlendirmeler</p>
-            <p>3 yıldız ve altı puan alan işlerde müşteri bilgileri gizlenir. Bu puanlar ortalamanıza dahildir ancak iletişim bilgilerine erişiminiz kısıtlanır.</p>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderSupportTab = () => (
      <div className="p-4 md:p-6 h-full flex flex-col">
