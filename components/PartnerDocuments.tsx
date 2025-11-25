@@ -3,7 +3,7 @@
  * Partnerin belgelerini yükleme ve onay durumu takibi
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { FileText, Upload, CheckCircle, XCircle, Clock, Eye, Download, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import { compressImage, isImageFile } from '../utils/imageCompression';
 
@@ -37,6 +37,8 @@ export const PartnerDocuments: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>(MOCK_DOCUMENTS);
   const [selectedType, setSelectedType] = useState('');
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const getStatusBadge = (status: Document['status']) => {
     const config = {
@@ -54,9 +56,18 @@ export const PartnerDocuments: React.FC = () => {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !selectedType) return;
+    if (!selectedType) {
+      setErrorMsg('Lütfen önce belge türünü seçin.');
+      return;
+    }
+    if (!e.target.files || !e.target.files.length) {
+      return;
+    }
     
     const file = e.target.files[0];
+
+    // Aynı dosya tekrar seçildiğinde onChange tetiklenmesi için önce temizle
+    // (Bazı kullanıcılar aynı dosyayı tekrar yüklemek istediğinde "çalışmıyor" algısı oluşuyordu)
     setUploading(true);
     
     try {
@@ -82,11 +93,19 @@ export const PartnerDocuments: React.FC = () => {
         setDocuments([...documents, newDoc]);
         setUploading(false);
         setSelectedType('');
+        // Aynı dosyanın tekrar seçilip yüklenebilmesi için input değerini sıfırla
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        setErrorMsg(null);
       }, 1500);
     } catch (error) {
       console.error('Belge yükleme hatası:', error);
       alert('Belge yüklenirken hata oluştu. Lütfen tekrar deneyin.');
       setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -167,7 +186,14 @@ export const PartnerDocuments: React.FC = () => {
             ))}
           </select>
 
-          <label className={`px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${selectedType ? 'bg-orange-600 text-white cursor-pointer hover:bg-orange-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+          <label
+            onClick={() => {
+              if (!selectedType) {
+                setErrorMsg('Önce belge türünü seçmelisiniz.');
+              }
+            }}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${selectedType ? 'bg-orange-600 text-white cursor-pointer hover:bg-orange-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+          >
             {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
             {uploading ? 'Yükleniyor...' : 'Belge Seç ve Yükle'}
             <input
@@ -176,10 +202,14 @@ export const PartnerDocuments: React.FC = () => {
               onChange={handleFileUpload}
               disabled={!selectedType || uploading}
               className="hidden"
+              ref={fileInputRef}
             />
           </label>
         </div>
         <p className="text-xs text-gray-500 mt-3">* PDF, JPG, PNG formatında, maksimum 5 MB</p>
+        {errorMsg && (
+          <p className="text-xs mt-2 text-red-600">{errorMsg}</p>
+        )}
       </div>
 
       {/* Documents List */}
