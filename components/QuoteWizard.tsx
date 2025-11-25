@@ -16,7 +16,10 @@ import {
   ShieldCheck,
   Info,
   CheckCircle2,
-  Navigation
+  Navigation,
+  Upload,
+  X,
+  Image as ImageIcon
 } from 'lucide-react';
 import { CITIES_WITH_DISTRICTS } from '../constants';
 
@@ -49,6 +52,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
   // Form Data State
   const [formData, setFormData] = useState({
     vehicleType: '',
+    vehicleCategory: 'binek', // binek, ticari, kamyonet, tır
     make: '',
     model: '',
     year: '',
@@ -56,17 +60,26 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
     fromCity: '',
     fromDistrict: '',
     fromAddress: '',
+    fromCoordinates: { lat: 0, lon: 0 }, // GPS koordinatları
     toCity: '',
     toDistrict: '',
     toAddress: '',
+    toCoordinates: { lat: 0, lon: 0 },
     condition: 'broken', // running (Çalışır) or broken (Arızalı/Kazalı)
     timing: 'now', // now, week, later
+    hasLoad: false, // Yük var mı?
+    loadDescription: '', // Yük açıklaması
     note: '',
+    damagePhotos: [] as File[], // Hasar fotoğrafları (ZORUNLU)
     useRegisteredContact: true,
     firstName: '',
     lastName: '',
-    phone: ''
+    phone: '',
+    createdAt: new Date().toISOString(), // Oluşturma tarihi
+    validUntil: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 saat geçerli
   });
+
+  const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
 
   const validateStep = (step: number) => {
     const newErrors: Record<string, boolean> = {};
@@ -86,6 +99,13 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
       if (formData.serviceType === 'towing') {
         if (!formData.toCity) newErrors.toCity = true;
         if (!formData.toDistrict) newErrors.toDistrict = true;
+      }
+    }
+
+    if (step === 3) {
+      // Fotoğraf zorunlu
+      if (formData.damagePhotos.length === 0) {
+        newErrors.damagePhotos = true;
       }
     }
 
@@ -127,6 +147,50 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newFiles = Array.from(files);
+    const currentPhotos = formData.damagePhotos;
+    
+    // Maximum 5 fotoğraf
+    if (currentPhotos.length + newFiles.length > 5) {
+      alert('En fazla 5 fotoğraf yükleyebilirsiniz');
+      return;
+    }
+
+    // Her fotoğraf max 5MB
+    const oversizedFiles = newFiles.filter(file => file.size > 5 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      alert('Fotoğraflar en fazla 5MB olmalıdır');
+      return;
+    }
+
+    // Preview URL'leri oluştur
+    const newPreviewUrls = newFiles.map(file => URL.createObjectURL(file));
+    setPhotoPreviewUrls([...photoPreviewUrls, ...newPreviewUrls]);
+    
+    // Form data'ya ekle
+    updateData('damagePhotos', [...currentPhotos, ...newFiles]);
+    
+    // Hata varsa kaldır
+    if (errors.damagePhotos) {
+      setErrors(prev => ({ ...prev, damagePhotos: false }));
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    const newPhotos = formData.damagePhotos.filter((_, i) => i !== index);
+    const newPreviews = photoPreviewUrls.filter((_, i) => i !== index);
+    
+    // Memory leak önleme
+    URL.revokeObjectURL(photoPreviewUrls[index]);
+    
+    setPhotoPreviewUrls(newPreviews);
+    updateData('damagePhotos', newPhotos);
   };
 
   const updateData = (key: string, value: any) => {
@@ -185,6 +249,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
           if (matchedCity) {
             console.log('✅ Şehir eşleşti:', matchedCity);
             updateData('fromCity', matchedCity);
+            updateData('fromCoordinates', { lat: latitude, lon: longitude });
             
             // Try to match district
             const districts = CITIES_WITH_DISTRICTS[matchedCity];
@@ -199,17 +264,13 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
             } else {
               console.warn('⚠️ İlçe eşleşmedi, manuel seçim gerekli');
             }
-            
-            alert(`📍 Konumunuz tespit edildi: ${matchedCity}${matchedDistrict ? ' / ' + matchedDistrict : ''}`);
           } else {
             console.warn('⚠️ Şehir sistemde bulunamadı:', city);
-            alert('Konumunuz tespit edildi ancak şehir listesinde bulunamadı. Lütfen manuel olarak seçin.');
           }
           
           setIsLoadingLocation(false);
         } catch (error) {
           console.error('❌ Reverse geocoding error:', error);
-          alert('Konum bilgisi alınamadı. Lütfen manuel olarak seçin.');
           setIsLoadingLocation(false);
         }
       },
@@ -229,7 +290,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
             break;
         }
         
-        alert(errorMessage + ' Lütfen manuel olarak seçin.');
+        console.error('Konum hatası:', errorMessage);
         setIsLoadingLocation(false);
       },
       {
@@ -272,6 +333,19 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Araç Kategorisi</label>
+          <select 
+            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none"
+            value={formData.vehicleCategory}
+            onChange={(e) => updateData('vehicleCategory', e.target.value)}
+          >
+            <option value="binek">Binek (Otomobil)</option>
+            <option value="ticari">Ticari Araç</option>
+            <option value="kamyonet">Kamyonet</option>
+            <option value="tır">Tır / Çekici</option>
+          </select>
+        </div>
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Araç Markası</label>
           <select 
@@ -474,6 +548,57 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
 
   const renderStep3 = () => (
     <div className="space-y-6">
+      {/* Araç Fotoğrafları - ZORUNLU */}
+      <div>
+        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <ImageIcon size={20} className="text-brand-orange" />
+          Araç Fotoğrafları <span className="text-red-500">*</span>
+        </h3>
+        <p className="text-sm text-gray-600 mb-4">Hasarlı aracın fotoğraflarını yükleyin (En az 1, en fazla 5 fotoğraf - Max 5MB)</p>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {/* Preview'lar */}
+          {photoPreviewUrls.map((url, index) => (
+            <div key={index} className="relative group">
+              <img 
+                src={url} 
+                alt={`Hasar ${index + 1}`}
+                className="w-full h-32 object-cover rounded-xl border-2 border-gray-200"
+              />
+              <button
+                onClick={() => removePhoto(index)}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ))}
+          
+          {/* Upload Button */}
+          {formData.damagePhotos.length < 5 && (
+            <label className={`border-2 border-dashed rounded-xl h-32 flex flex-col items-center justify-center cursor-pointer transition-all ${
+              errors.damagePhotos ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-brand-orange hover:bg-orange-50'
+            }`}>
+              <Upload size={24} className="text-gray-400 mb-2" />
+              <span className="text-xs font-medium text-gray-500">Fotoğraf Ekle</span>
+              <input 
+                type="file" 
+                accept="image/*"
+                multiple
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </label>
+          )}
+        </div>
+        {errors.damagePhotos && (
+          <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+            <AlertTriangle size={14} />
+            En az 1 fotoğraf yüklemeniz zorunludur
+          </p>
+        )}
+      </div>
+
       <div>
          <h3 className="text-lg font-bold text-gray-900 mb-4">Araç Durumu</h3>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -500,6 +625,32 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
          </div>
       </div>
 
+      {/* Yük Durumu */}
+      <div>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Yük Durumu</h3>
+        <label className="flex items-center gap-3 mb-3">
+          <input 
+            type="checkbox"
+            checked={formData.hasLoad}
+            onChange={(e) => updateData('hasLoad', e.target.checked)}
+            className="w-5 h-5 text-brand-orange focus:ring-brand-orange rounded"
+          />
+          <span className="text-gray-700 font-medium">Araçta yük var</span>
+        </label>
+        
+        {formData.hasLoad && (
+          <div className="mt-4">
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Yük Açıklaması</label>
+            <textarea 
+              className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none min-h-[80px]"
+              placeholder="Yükün cinsini ve ağırlığını belirtin (Örn: İnşaat malzemesi, 500kg)"
+              value={formData.loadDescription}
+              onChange={(e) => updateData('loadDescription', e.target.value)}
+            ></textarea>
+          </div>
+        )}
+      </div>
+
       <div>
          <h3 className="text-lg font-bold text-gray-900 mb-4">Ne Zaman?</h3>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -523,13 +674,14 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
       </div>
 
       <div>
-         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ek Açıklama (Opsiyonel)</label>
+         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ek Açıklama</label>
          <textarea 
             className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none min-h-[100px]"
-            placeholder="Örn: Araç şarampole yuvarlandı, lastik patlak, anahtar yok vb."
+            placeholder="Örn: Araç şarampole yuvarlandı, lastik patlak, anahtar yok, araç ticari amaçlı kullanılıyor vb."
             value={formData.note}
             onChange={(e) => updateData('note', e.target.value)}
          ></textarea>
+         <p className="text-xs text-gray-500 mt-1">* Ticari araç ise ve yük varsa mutlaka belirtiniz</p>
       </div>
     </div>
   );
@@ -542,8 +694,24 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
           </h3>
           <div className="space-y-3 text-sm text-gray-700">
              <div className="flex justify-between border-b border-orange-100 pb-2">
+                <span className="text-gray-500">Talep Tarihi:</span>
+                <span className="font-bold">{new Date(formData.createdAt).toLocaleString('tr-TR')}</span>
+             </div>
+             <div className="flex justify-between border-b border-orange-100 pb-2">
+                <span className="text-gray-500">Geçerlilik:</span>
+                <span className="font-bold">{new Date(formData.validUntil).toLocaleString('tr-TR')}</span>
+             </div>
+             <div className="flex justify-between border-b border-orange-100 pb-2">
                 <span className="text-gray-500">Araç:</span>
                 <span className="font-bold">{formData.make} {formData.model} ({formData.year})</span>
+             </div>
+             <div className="flex justify-between border-b border-orange-100 pb-2">
+                <span className="text-gray-500">Kategori:</span>
+                <span className="font-bold">
+                  {formData.vehicleCategory === 'binek' ? 'Binek' : 
+                   formData.vehicleCategory === 'ticari' ? 'Ticari' :
+                   formData.vehicleCategory === 'kamyonet' ? 'Kamyonet' : 'Tır/Çekici'}
+                </span>
              </div>
              <div className="flex justify-between border-b border-orange-100 pb-2">
                 <span className="text-gray-500">Hizmet:</span>
@@ -553,6 +721,11 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
                 <span className="text-gray-500">Nereden:</span>
                 <span className="font-bold text-right">
                    {formData.fromDistrict}, {formData.fromCity}
+                   {formData.fromCoordinates.lat !== 0 && (
+                     <span className="block text-xs text-gray-500">
+                       📍 {formData.fromCoordinates.lat.toFixed(6)}, {formData.fromCoordinates.lon.toFixed(6)}
+                     </span>
+                   )}
                 </span>
              </div>
              {formData.toCity && (
@@ -563,6 +736,16 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
                   </span>
                </div>
              )}
+             {formData.hasLoad && (
+               <div className="flex justify-between border-b border-orange-100 pb-2">
+                  <span className="text-gray-500">Yük:</span>
+                  <span className="font-bold text-right">{formData.loadDescription || 'Var'}</span>
+               </div>
+             )}
+             <div className="flex justify-between border-b border-orange-100 pb-2">
+                <span className="text-gray-500">Fotoğraf:</span>
+                <span className="font-bold">{formData.damagePhotos.length} adet</span>
+             </div>
              <div className="flex justify-between">
                 <span className="text-gray-500">Zamanlama:</span>
                 <span className="font-bold">

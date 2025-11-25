@@ -56,28 +56,6 @@ function App() {
     initDemoData();
   }, []);
 
-  // Initialize test notifications
-  useEffect(() => {
-    const initNotifications = async () => {
-      // Bildirimi ilk açılışta göster
-      console.log('🔔 Bildirim izni isteniyor...');
-      const permitted = await requestNotificationPermission();
-      
-      if (permitted) {
-        console.log('✅ Bildirim izni alındı, test bildirimleri başlatılıyor...');
-        // İlk bildirimi 2 saniye sonra gönder
-        setTimeout(() => {
-          startTestNotifications();
-        }, 2000);
-      } else {
-        console.warn('❌ Bildirim izni verilmedi');
-      }
-    };
-    
-    // Sayfa yüklendiğinde hemen çalıştır
-    initNotifications();
-  }, []);
-
   // Scroll to top when page changes
   useEffect(() => {
     window.scrollTo(0, 0);

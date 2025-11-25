@@ -159,11 +159,8 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
               setLocationStep('district');
               setIsLocationOpen(true);
             }
-            
-            alert(`📍 Konumunuz: ${matchedCity}${matchedDistrict ? ' / ' + matchedDistrict : ''}`);
           } else {
             console.warn('⚠️ Şehir sistemde bulunamadı:', city);
-            alert('Konumunuz tespit edildi ancak şehir listesinde bulunamadı. Lütfen manuel seçin.');
           }
           
           setIsLoadingLocation(false);
@@ -190,7 +187,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
             break;
         }
         
-        alert(errorMessage + ' Manuel olarak seçebilirsiniz.');
+        console.error('Konum hatası:', errorMessage);
         setIsLoadingLocation(false);
         setIsLocationOpen(true);
       },
