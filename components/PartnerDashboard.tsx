@@ -202,6 +202,12 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [ratingScore, setRatingScore] = useState(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
+  // Review Objection State
+  const [showObjectionModal, setShowObjectionModal] = useState(false);
+  const [selectedReviewForObjection, setSelectedReviewForObjection] = useState<typeof MOCK_REVIEWS[0] | null>(null);
+  const [objectionReason, setObjectionReason] = useState('');
+  const [objectionDetails, setObjectionDetails] = useState('');
+
   // Filter State
   const [filterMode, setFilterMode] = useState<'all' | 'nearest' | 'highest_price' | 'urgent'>('all');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
@@ -401,6 +407,34 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     setJobStage(0);
     setRatingScore(0);
     setSelectedTags([]);
+  };
+
+  const handleOpenObjection = (review: typeof MOCK_REVIEWS[0]) => {
+    setSelectedReviewForObjection(review);
+    setShowObjectionModal(true);
+    setObjectionReason('');
+    setObjectionDetails('');
+  };
+
+  const handleSubmitObjection = () => {
+    if (!objectionReason || !objectionDetails.trim()) {
+      alert('Lütfen itiraz nedenini seçin ve detayları yazın.');
+      return;
+    }
+    
+    // Burada backend'e gönderilecek
+    console.log('İtiraz Gönderildi:', {
+      reviewId: selectedReviewForObjection?.id,
+      jobId: selectedReviewForObjection?.jobId,
+      reason: objectionReason,
+      details: objectionDetails
+    });
+    
+    alert('✅ İtirazınız başarıyla gönderildi. En kısa sürede incelenecektir.');
+    setShowObjectionModal(false);
+    setSelectedReviewForObjection(null);
+    setObjectionReason('');
+    setObjectionDetails('');
   };
 
   const getStageLabel = () => {
@@ -1502,7 +1536,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                 <div className="flex justify-between items-center pt-4 border-t border-slate-100">
                   <span className="text-xs text-slate-400 font-mono">İş No: #{review.jobId}</span>
                   {isLowRating && (
-                    <button className="text-xs text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                    <button 
+                      onClick={() => handleOpenObjection(review)}
+                      className="text-xs text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                    >
                       <HelpCircle size={14} /> İtiraz Et
                     </button>
                   )}
@@ -2778,6 +2815,127 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       <AnimatePresence>{selectedRequestForOffer && renderCustomerOfferModal()}</AnimatePresence>
       <AnimatePresence>{showRatingModal && renderRatingModal()}</AnimatePresence>
       <AnimatePresence>{selectedJobForDetail && renderJobDetailModal()}</AnimatePresence>
+      
+      {/* Review Objection Modal */}
+      {showObjectionModal && selectedReviewForObjection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden"
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-red-500 to-red-600 p-6 text-white">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <ShieldAlert size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">Değerlendirmeye İtiraz</h2>
+                    <p className="text-sm text-red-100">İş No: #{selectedReviewForObjection.jobId}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowObjectionModal(false)}
+                  className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Review Info */}
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                    ?
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-slate-900">Müşteri ***</h3>
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            size={16} 
+                            fill={i < selectedReviewForObjection.rating ? "#ef4444" : "none"} 
+                            className={i < selectedReviewForObjection.rating ? "text-red-500" : "text-slate-300"}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-700 mb-2">{selectedReviewForObjection.comment}</p>
+                    <p className="text-xs text-slate-500">{selectedReviewForObjection.date} • {selectedReviewForObjection.service}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Objection Reason */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">İtiraz Nedeni *</label>
+                <select
+                  value={objectionReason}
+                  onChange={(e) => setObjectionReason(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm text-slate-800 font-medium focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                >
+                  <option value="">Seçiniz...</option>
+                  <option value="wrong_job">Yanlış İş Kaydı</option>
+                  <option value="false_claim">Haksız İddia</option>
+                  <option value="customer_mistake">Müşteri Hatası</option>
+                  <option value="technical_issue">Teknik Sorun</option>
+                  <option value="unfair_rating">Adaletsiz Puanlama</option>
+                  <option value="other">Diğer</option>
+                </select>
+              </div>
+
+              {/* Objection Details */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Açıklama & Kanıtlar *</label>
+                <textarea
+                  value={objectionDetails}
+                  onChange={(e) => setObjectionDetails(e.target.value)}
+                  placeholder="İtirazınızın detaylarını ve varsa kanıtlarınızı açıklayın..."
+                  className="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm text-slate-800 font-medium focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all resize-none h-32"
+                  maxLength={500}
+                ></textarea>
+                <p className="text-xs text-slate-400 mt-1">{objectionDetails.length}/500 karakter</p>
+              </div>
+
+              {/* Info Box */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                <div className="flex gap-3">
+                  <AlertTriangle size={20} className="text-yellow-600 shrink-0 mt-0.5" />
+                  <div className="text-sm text-yellow-800">
+                    <p className="font-bold mb-1">⚠️ Önemli Bilgilendirme</p>
+                    <p className="leading-relaxed">İtirazınız en geç 3 iş günü içinde incelenecektir. İtiraz geçerli bulunursa değerlendirme kaldırılacak ve puanınız yeniden hesaplanacaktır. Sahte veya asılsız itirazlar hesabınıza olumsuz etki edebilir.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowObjectionModal(false)}
+                  className="flex-1 px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleSubmitObjection}
+                  disabled={!objectionReason || !objectionDetails.trim()}
+                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                >
+                  <Send size={18} /> İtiraz Gönder
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

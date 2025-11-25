@@ -103,22 +103,17 @@ export const PartnerPayments: React.FC = () => {
     return matchesType && matchesStatus;
   });
 
-  // Hesaplamalar
+  // Hesaplamalar (Komisyon yok - sadece net kazanç)
   const totalEarnings = MOCK_PAYMENTS
     .filter(p => p.type === 'earning' && p.status === 'completed')
     .reduce((sum, p) => sum + (p.grossAmount || p.amount), 0);
 
-  const totalCommission = MOCK_PAYMENTS
-    .filter(p => p.type === 'earning' && p.status === 'completed')
-    .reduce((sum, p) => sum + (p.commission || 0), 0);
-
-  const netEarnings = MOCK_PAYMENTS
-    .filter(p => p.type === 'earning' && p.status === 'completed')
-    .reduce((sum, p) => sum + p.amount, 0);
-
   const pendingPayments = MOCK_PAYMENTS
     .filter(p => p.status === 'pending')
     .reduce((sum, p) => sum + p.amount, 0);
+  
+  const completedJobsCount = MOCK_PAYMENTS
+    .filter(p => p.type === 'earning' && p.status === 'completed').length;
 
   const getStatusBadge = (status: Payment['status']) => {
     const config = {
@@ -147,7 +142,7 @@ export const PartnerPayments: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -155,20 +150,9 @@ export const PartnerPayments: React.FC = () => {
             </div>
             <ArrowUpRight size={20} className="opacity-60" />
           </div>
-          <p className="text-sm text-green-100 mb-1">Toplam Kazanç (Brüt)</p>
+          <p className="text-sm text-green-100 mb-1">Toplam Kazanç</p>
           <p className="text-3xl font-bold">{totalEarnings.toLocaleString()} ₺</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-5 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <Percent size={24} />
-            </div>
-            <ArrowDownLeft size={20} className="opacity-60" />
-          </div>
-          <p className="text-sm text-orange-100 mb-1">Toplam Komisyon</p>
-          <p className="text-3xl font-bold">{totalCommission.toLocaleString()} ₺</p>
-          <p className="text-xs text-orange-100 mt-1">%10 platform komisyonu</p>
+          <p className="text-xs text-green-100 mt-1">{completedJobsCount} İş Tamamlandı</p>
         </div>
 
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white shadow-lg">
@@ -176,37 +160,49 @@ export const PartnerPayments: React.FC = () => {
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <Wallet size={24} />
             </div>
-            <Coins size={20} className="opacity-60" />
+            <Clock size={20} className="opacity-60" />
           </div>
-          <p className="text-sm text-blue-100 mb-1">Net Kazanç</p>
-          <p className="text-3xl font-bold">{netEarnings.toLocaleString()} ₺</p>
+          <p className="text-sm text-blue-100 mb-1">Bekleyen Ödemeler</p>
+          <p className="text-3xl font-bold">{pendingPayments.toLocaleString()} ₺</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-5 text-white shadow-lg">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <CreditCard size={24} />
+            </div>
+            <Receipt size={20} className="opacity-60" />
+          </div>
+          <p className="text-sm text-purple-100 mb-1">Bu Ay Kazanç</p>
+          <p className="text-3xl font-bold">{(totalEarnings * 0.65).toLocaleString()} ₺</p>
+          <p className="text-xs text-purple-100 mt-1">Son 30 Gün</p>
         </div>
       </div>
 
-      {/* Commission Info Card */}
-      <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
+      {/* Info Card - Platform Avantajları */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Percent size={24} className="text-white" />
+          <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Coins size={24} className="text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-orange-900 mb-2">Komisyon Yapısı</h3>
-            <p className="text-sm text-orange-700 mb-3">
-              YOLMOV platformu üzerinden gerçekleştirdiğiniz işlerin kazançları aşağıda gösterilmektedir. 
-              Bu komisyon, platform altyapısı, müşteri kazanımı, pazarlama ve teknik destek maliyetlerini karşılamaktadır.
+            <h3 className="text-lg font-bold text-blue-900 mb-2">💰 Komisyonsuz Kazanç Sistemi</h3>
+            <p className="text-sm text-blue-700 mb-3">
+              YOLMOV platformunda müşterilerden aldığınız ödemenin <span className="font-bold">%100'ü size aittir!</span> 
+              Platform geliri sadece kredi satışından elde edilir. İş başı komisyon alınmaz.
             </p>
-            <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-orange-800">Müşteri Ödemesi: %100</span>
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              <div className="flex items-center gap-2 bg-white/60 px-3 py-2 rounded-lg">
+                <CheckCircle size={16} className="text-green-600" />
+                <span className="text-blue-900 font-semibold">%0 Komisyon</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span className="text-orange-800">Platform Komisyonu: %10</span>
+              <div className="flex items-center gap-2 bg-white/60 px-3 py-2 rounded-lg">
+                <CheckCircle size={16} className="text-green-600" />
+                <span className="text-blue-900 font-semibold">Hızlı Ödeme</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-orange-800">Net Kazancınız: %90</span>
+              <div className="flex items-center gap-2 bg-white/60 px-3 py-2 rounded-lg">
+                <CheckCircle size={16} className="text-green-600" />
+                <span className="text-blue-900 font-semibold">Anında Tahsilat</span>
               </div>
             </div>
           </div>
@@ -259,9 +255,8 @@ export const PartnerPayments: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">İşlem ID</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">İş No</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Müşteri/Hizmet</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Brüt</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Komisyon</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Net</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tutar</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ödeme Yöntemi</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tarih</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Durum</th>
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Detay</th>
@@ -283,24 +278,12 @@ export const PartnerPayments: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-gray-700">
-                      {payment.grossAmount ? `${payment.grossAmount} ₺` : '-'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    {payment.commission ? (
-                      <div className="text-sm">
-                        <p className="font-semibold text-orange-600">-{payment.commission} ₺</p>
-                        <p className="text-xs text-gray-500">(%{payment.commissionRate})</p>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
                     <span className={`text-sm font-bold ${payment.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {payment.amount >= 0 ? '+' : ''}{payment.amount} ₺
+                      {payment.amount >= 0 ? '+' : ''}{(payment.grossAmount || payment.amount).toLocaleString()} ₺
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-gray-600">{getPaymentMethodLabel(payment.paymentMethod)}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-gray-600">{payment.date}</span>
@@ -371,21 +354,14 @@ export const PartnerPayments: React.FC = () => {
 
               {selectedPayment.grossAmount && (
                 <div className="flex justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                  <span className="text-sm text-green-700 font-semibold">Brüt Tutar</span>
+                  <span className="text-sm text-green-700 font-semibold">Ödeme Tutarı</span>
                   <span className="text-lg font-bold text-green-600">{selectedPayment.grossAmount} ₺</span>
                 </div>
               )}
 
-              {selectedPayment.commission && (
-                <div className="flex justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <span className="text-sm text-orange-700 font-semibold">Komisyon (%{selectedPayment.commissionRate})</span>
-                  <span className="text-lg font-bold text-orange-600">-{selectedPayment.commission} ₺</span>
-                </div>
-              )}
-
-              <div className="flex justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <span className="text-sm text-blue-700 font-semibold">Net Kazanç</span>
-                <span className="text-2xl font-bold text-blue-600">{selectedPayment.amount} ₺</span>
+              <div className="flex justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
+                <span className="text-sm text-blue-700 font-semibold">Kazancınız (%0 Komisyon)</span>
+                <span className="text-2xl font-bold text-blue-600">{(selectedPayment.grossAmount || selectedPayment.amount)} ₺</span>
               </div>
 
               <div className="flex justify-between p-4 bg-gray-50 rounded-lg">
