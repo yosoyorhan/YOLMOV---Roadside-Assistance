@@ -264,6 +264,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketCategory, setTicketCategory] = useState('');
   const [ticketDescription, setTicketDescription] = useState('');
+  const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
 
   // Fleet State - Yeni Araç Ekleme
   const [showNewVehiclePage, setShowNewVehiclePage] = useState(false);
@@ -351,6 +352,8 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
   // Empty Trucks State
   const [emptyTruckType, setEmptyTruckType] = useState<'intercity' | 'intracity'>('intercity');
+  const [showMatchesModal, setShowMatchesModal] = useState(false);
+  const [selectedTruckForMatches, setSelectedTruckForMatches] = useState<any | null>(null);
   const [emptyTruckOrigin, setEmptyTruckOrigin] = useState('');
   const [emptyTruckDestination, setEmptyTruckDestination] = useState('');
   const [emptyTruckDate, setEmptyTruckDate] = useState('');
@@ -360,7 +363,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
   // New Jobs State
   const [selectedJobForDetail, setSelectedJobForDetail] = useState<JobRequest | null>(null);
-  const [newJobsFilter, setNewJobsFilter] = useState<'all' | 'nearest' | 'urgent' | 'high_price'>('all');
+  const [newJobsFilter, setNewJobsFilter] = useState<'all' | 'nearest' | 'urgent'>('all');
 
   const cityList = Object.keys(CITIES_WITH_DISTRICTS);
 
@@ -404,8 +407,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   });
 
   const filteredHistory = MOCK_HISTORY.filter(item => 
-    item.id.toLowerCase().includes(historySearch.toLowerCase()) ||
-    item.customer.toLowerCase().includes(historySearch.toLowerCase())
+    (item.id.toLowerCase().includes(historySearch.toLowerCase()) ||
+    item.customer.toLowerCase().includes(historySearch.toLowerCase())) &&
+    item.status === 'completed'
   );
 
   // Step 1: Open Modal
@@ -2057,7 +2061,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                          <h3 className="font-bold text-slate-900 text-lg">{vehicle.plate}</h3>
                          <p className="text-sm text-slate-500">{vehicle.model}</p>
                       </div>
-                      <button className="p-2 text-slate-400 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-lg transition-colors"><Settings size={16} /></button>
+                      <button onClick={() => alert(`${vehicle.plate} için ayarlar açılıyor.`)} className="p-2 text-slate-400 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-lg transition-colors"><Settings size={16} /></button>
                    </div>
                    <div className="space-y-2 text-sm">
                       <div className="flex justify-between py-2 border-b border-slate-50">
@@ -2070,8 +2074,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                       </div>
                    </div>
                    <div className="mt-4 pt-2 flex gap-2">
-                      <button className="flex-1 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors">Geçmiş</button>
-                      <button className="flex-1 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors">Konum</button>
+                      <button onClick={() => alert(`${vehicle.plate} için geçmiş görüntüleniyor.`)} className="flex-1 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors">Geçmiş</button>
                    </div>
                 </div>
              </div>
@@ -2722,7 +2725,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                   className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 >
                   <option value="">Seçiniz...</option>
-                  <option value="payment">Ödeme & Komisyon</option>
                   <option value="technical">Teknik Sorun</option>
                   <option value="customer_complaint">Müşteri Şikayeti</option>
                   <option value="account">Hesap İşlemleri</option>
@@ -2738,7 +2740,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                   type="text"
                   value={ticketSubject}
                   onChange={(e) => setTicketSubject(e.target.value)}
-                  placeholder="Örn: Ödeme hesabıma yansımadı"
+                  placeholder="Örn: Uygulamada teknik bir sorun yaşıyorum"
                   maxLength={100}
                   className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 />
@@ -2795,11 +2797,11 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                       description: ticketDescription,
                       timestamp: new Date().toISOString()
                     });
-                    alert('✅ Destek talebiniz başarıyla oluşturuldu. Ekibimiz en kısa sürede size dönüş yapacaktır.');
                     setShowNewTicketPage(false);
                     setTicketSubject('');
                     setTicketCategory('');
                     setTicketDescription('');
+                    alert('Mesajınız başarılı bir şekilde alındı.');
                   }}
                   disabled={!ticketCategory || !ticketSubject.trim() || !ticketDescription.trim()}
                   className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
@@ -2812,6 +2814,40 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         </div>
       );
     }
+
+    const renderTicketDetailModal = () => {
+        if (!selectedTicket) return null;
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" onClick={() => setSelectedTicket(null)}>
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-6 text-white">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold">Destek Talebi Detayı</h2>
+                                <p className="text-sm text-white/80">Talep No: #{selectedTicket.id}</p>
+                            </div>
+                            <button onClick={() => setSelectedTicket(null)} className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <p><span className="font-bold">Konu:</span> {selectedTicket.subject}</p>
+                        <p><span className="font-bold">Tarih:</span> {selectedTicket.date}</p>
+                        <p><span className="font-bold">Durum:</span> {selectedTicket.status}</p>
+                        <p className="mt-4 pt-4 border-t border-slate-200"><span className="font-bold">Detaylar:</span></p>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris. Vivamus hendrerit arcu sed erat molestie vehicula. Sed auctor neque eu tellus rhoncus ut eleifend nibh porttitor.</p>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    };
 
     // Ana destek sayfası
     return (
@@ -2840,7 +2876,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
            <h3 className="font-bold text-slate-800 mb-4">Geçmiş Taleplerim</h3>
            <div className="space-y-2">
               {MOCK_TICKETS.map(ticket => (
-                 <div key={ticket.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                 <div key={ticket.id} onClick={() => setSelectedTicket(ticket)} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
                     <div className="flex items-center gap-4">
                        <div className={`w-2 h-2 rounded-full ${ticket.status === 'open' ? 'bg-green-500' : 'bg-slate-300'}`}></div>
                        <div>
@@ -2855,6 +2891,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               ))}
            </div>
         </div>
+        <AnimatePresence>
+            {selectedTicket && renderTicketDetailModal()}
+        </AnimatePresence>
      </div>
     );
   };
@@ -2864,7 +2903,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     const filteredNewJobs = requests.filter(req => {
       if (newJobsFilter === 'nearest') return parseFloat(req.distance) < 10;
       if (newJobsFilter === 'urgent') return req.urgency === 'high';
-      if (newJobsFilter === 'high_price') return req.estimatedPrice && req.estimatedPrice > 800;
       return true;
     });
 
@@ -2877,7 +2915,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               { id: 'all', label: 'Tümü', icon: LayoutList },
               { id: 'nearest', label: 'En Yakın', icon: Navigation },
               { id: 'urgent', label: 'Acil İşler', icon: AlertTriangle },
-              { id: 'high_price', label: 'Yüksek Ücret', icon: DollarSign },
             ].map(filter => (
               <button
                 key={filter.id}
@@ -3023,6 +3060,61 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
   // ============== BOŞ DÖNEN ARAÇLAR TAB ==============
   const renderEmptyTrucksTab = () => {
+
+    const handleOpenMatchesModal = (truck: any) => {
+        setSelectedTruckForMatches(truck);
+        setShowMatchesModal(true);
+    };
+
+    const renderMatchesModal = () => {
+        if (!selectedTruckForMatches) return null;
+
+        // Mock data for matches - replace with real data later
+        const MOCK_MATCHES = [
+            { id: 'MATCH-001', customerName: 'Ayşe Yıldız', route: `${selectedTruckForMatches.origin} -> ${selectedTruckForMatches.destinations[0]}`, price: 750 },
+            { id: 'MATCH-002', customerName: 'Fatma Demir', route: `${selectedTruckForMatches.origin} -> ${selectedTruckForMatches.destinations[0]}`, price: 800 },
+            { id: 'MATCH-003', customerName: 'Hayriye Kaya', route: `${selectedTruckForMatches.origin} -> Bir ara nokta`, price: 600 },
+        ];
+
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden"
+                >
+                    <div className="bg-gradient-to-r from-green-600 to-green-700 p-6 text-white">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold">Eşleşen Talepler</h2>
+                                <p className="text-sm text-green-100">{selectedTruckForMatches.origin} → {selectedTruckForMatches.destinations[0]}</p>
+                            </div>
+                            <button onClick={() => setShowMatchesModal(false)} className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                        {MOCK_MATCHES.map(match => (
+                            <div key={match.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between hover:border-green-300 transition-colors">
+                                <div>
+                                    <p className="font-bold text-slate-800">{match.customerName}</p>
+                                    <p className="text-sm text-slate-500">{match.route}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-lg text-green-600">₺{match.price}</p>
+                                    <button className="text-xs text-blue-600 font-bold hover:underline">Teklif Ver</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            </div>
+        );
+    };
+
     const handleAddEmptyTruck = () => {
       if (!emptyTruckOrigin || !emptyTruckDate || !emptyTruckTime || !emptyTruckVehicle) {
         alert('Lütfen tüm zorunlu alanları doldurun');
@@ -3240,7 +3332,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                     <span className="text-sm font-bold text-green-700">
                       ✅ {truck.matches} Eşleşme Bulundu
                     </span>
-                    <button className="text-xs bg-green-600 text-white px-3 py-1 rounded-lg font-bold hover:bg-green-700">
+                    <button onClick={() => handleOpenMatchesModal(truck)} className="text-xs bg-green-600 text-white px-3 py-1 rounded-lg font-bold hover:bg-green-700">
                       Görüntüle
                     </button>
                   </div>
@@ -3259,6 +3351,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
             </div>
           )}
         </div>
+        <AnimatePresence>
+            {showMatchesModal && renderMatchesModal()}
+        </AnimatePresence>
       </div>
     );
   };
@@ -3869,7 +3964,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
               {settingsSubTab === 'services' && (
                  <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-slate-800">Hizmet & Fiyat Ayarları</h2>
+                    <h2 className="text-2xl font-bold text-slate-800">Hizmet Ayarları</h2>
                     <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-xl flex gap-3 text-sm text-yellow-800">
                        <AlertTriangle className="shrink-0" size={20} />
                        <p>Burada belirlediğiniz taban fiyatlar müşteriye gösterilen "Başlangıç Fiyatı"dır. Kesin fiyat teklif sırasında belirlenir.</p>
@@ -3880,13 +3975,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                              <div className="flex items-center gap-3">
                                 <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
                                 <span className="font-bold text-slate-700">{srv}</span>
-                             </div>
-                             <div className="flex items-center gap-2">
-                                <span className="text-sm text-slate-400">Taban Fiyat:</span>
-                                <div className="relative w-28">
-                                   <input type="number" defaultValue="500" className="w-full p-2 pl-7 bg-slate-50 rounded-lg border-2 border-slate-200 text-sm font-bold outline-none focus:border-blue-500 transition-all" />
-                                   <span className="absolute left-2 top-2 text-slate-400 text-sm font-bold">₺</span>
-                                </div>
                              </div>
                           </div>
                        ))}
@@ -4096,10 +4184,21 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                 <button onClick={() => setShowAddCreditModal(true)} className="w-full py-1 bg-blue-600 text-[10px] rounded text-white font-bold leading-none flex items-center justify-center">+</button>
             </div>
           </div>
-          <div className="flex items-center gap-3 mb-4 px-2 justify-center lg:justify-start">
+          <button
+            onClick={() => {
+              setActiveTab('settings');
+              setSettingsSubTab('profile');
+            }}
+            className="w-full text-left flex items-center gap-3 mb-4 px-2 justify-center lg:justify-start hover:bg-slate-800 rounded-lg p-2 transition-colors"
+          >
             <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden border-2 border-slate-600 shrink-0"><img src="https://i.pravatar.cc/150?img=11" alt="Profile" /></div>
-            <div className="hidden lg:block overflow-hidden"><p className="text-sm font-bold truncate">Yılmaz Oto Kurtarma</p><div className="flex items-center text-xs text-yellow-500"><span>★ 4.9</span><span className="text-slate-500 ml-1">(128 İş)</span></div></div>
-          </div>
+            <div className="hidden lg:block overflow-hidden">
+              <p className="text-sm font-bold truncate">Yılmaz Oto Kurtarma</p>
+              <div className="flex items-center text-xs text-yellow-500">
+                <span>★ 4.9</span><span className="text-slate-500 ml-1">(128 İş)</span>
+              </div>
+            </div>
+          </button>
           <button onClick={onLogout} className="w-full flex items-center justify-center lg:justify-start p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"><LogOut size={18} /><span className="hidden lg:block ml-2 text-sm font-medium">Çıkış Yap</span></button>
         </div>
       </div>
