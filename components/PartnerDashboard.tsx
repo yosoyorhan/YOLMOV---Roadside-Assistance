@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PartnerOfferHistory from './PartnerOfferHistory';
 import PartnerPayments from './PartnerPayments';
 import PartnerDocuments from './PartnerDocuments';
+import { compressImage, isImageFile, createPreviewUrl } from '../utils/imageCompression';
 
 interface PartnerDashboardProps {
   onLogout: () => void;
@@ -202,6 +203,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [jobStage, setJobStage] = useState<0 | 1 | 2 | 3 | 4>(0); 
   const [hasStartProof, setHasStartProof] = useState(false);
   const [hasEndProof, setHasEndProof] = useState(false);
+  const [startProofImage, setStartProofImage] = useState<File | null>(null);
+  const [endProofImage, setEndProofImage] = useState<File | null>(null);
+  const [isCompressingImage, setIsCompressingImage] = useState(false);
 
   // Rating State
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -230,6 +234,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
   // Settings State
   const [settingsSubTab, setSettingsSubTab] = useState<'profile' | 'services' | 'documents' | 'security'>('profile');
+  const [companyLogo, setCompanyLogo] = useState<File | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [isCompressingLogo, setIsCompressingLogo] = useState(false);
+  const [isCompressingProfile, setIsCompressingProfile] = useState(false);
 
   // Support State - Yeni Talep Oluşturma
   const [showNewTicketPage, setShowNewTicketPage] = useState(false);
@@ -244,6 +252,8 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [vehicleType, setVehicleType] = useState('');
   const [vehicleDriver, setVehicleDriver] = useState('');
   const [vehicleYear, setVehicleYear] = useState('');
+  const [vehiclePhoto, setVehiclePhoto] = useState<File | null>(null);
+  const [isCompressingVehicle, setIsCompressingVehicle] = useState(false);
 
   // Route / Empty Leg State
   const [activeRoutes, setActiveRoutes] = useState(INITIAL_ROUTES);
@@ -464,6 +474,113 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     setSelectedReviewForObjection(null);
     setObjectionReason('');
     setObjectionDetails('');
+  };
+
+  // Fotoğraf yükleme ve sıkıştırma fonksiyonları
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: 'start' | 'end'
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!isImageFile(file)) {
+      alert('Lütfen sadece görsel dosyası yükleyin (JPG, PNG, vb.)');
+      return;
+    }
+
+    setIsCompressingImage(true);
+
+    try {
+      const result = await compressImage(file);
+      
+      if (type === 'start') {
+        setStartProofImage(result.compressedFile);
+        setHasStartProof(true);
+      } else {
+        setEndProofImage(result.compressedFile);
+        setHasEndProof(true);
+      }
+
+      alert(`✅ Fotoğraf yüklendi ve %${result.compressionRatio.toFixed(1)} oranında küçültüldü.`);
+    } catch (error) {
+      alert('❌ Fotoğraf yüklenirken hata oluştu. Lütfen tekrar deneyin.');
+      console.error(error);
+    } finally {
+      setIsCompressingImage(false);
+    }
+  };
+
+  // Company logo upload handler
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!isImageFile(file)) {
+      alert('Lütfen sadece görsel dosyası yükleyin (JPG, PNG, vb.)');
+      return;
+    }
+
+    try {
+      setIsCompressingLogo(true);
+      const result = await compressImage(file);
+      setCompanyLogo(result.compressedFile);
+
+      alert(`✅ Logo yüklendi ve %${result.compressionRatio.toFixed(1)} oranında küçültüldü.`);
+    } catch (error) {
+      console.error('Logo compression error:', error);
+      alert('❌ Logo işlenirken bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsCompressingLogo(false);
+    }
+  };
+
+  // Profile photo upload handler
+  const handleProfilePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!isImageFile(file)) {
+      alert('Lütfen sadece görsel dosyası yükleyin (JPG, PNG, vb.)');
+      return;
+    }
+
+    try {
+      setIsCompressingProfile(true);
+      const result = await compressImage(file);
+      setProfilePhoto(result.compressedFile);
+
+      alert(`✅ Profil fotoğrafı yüklendi ve %${result.compressionRatio.toFixed(1)} oranında küçültüldü.`);
+    } catch (error) {
+      console.error('Profile photo compression error:', error);
+      alert('❌ Profil fotoğrafı işlenirken bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsCompressingProfile(false);
+    }
+  };
+
+  // Vehicle photo upload handler
+  const handleVehiclePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!isImageFile(file)) {
+      alert('Lütfen sadece görsel dosyası yükleyin (JPG, PNG, vb.)');
+      return;
+    }
+
+    try {
+      setIsCompressingVehicle(true);
+      const result = await compressImage(file);
+      setVehiclePhoto(result.compressedFile);
+
+      alert(`✅ Araç fotoğrafı yüklendi ve %${result.compressionRatio.toFixed(1)} oranında küçültüldü.`);
+    } catch (error) {
+      console.error('Vehicle photo compression error:', error);
+      alert('❌ Araç fotoğrafı işlenirken bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsCompressingVehicle(false);
+    }
   };
 
   const handleStartNavigation = () => {
@@ -1353,6 +1470,49 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                 <p className="text-xs text-slate-400 mt-1">Opsiyonel - Sonra da ekleyebilirsiniz</p>
               </div>
 
+              {/* Araç Fotoğrafı */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Araç Fotoğrafı</label>
+                <div className="flex items-center gap-6 p-5 bg-gradient-to-r from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-200">
+                  <div className="w-28 h-28 rounded-xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 overflow-hidden shadow-sm">
+                    {vehiclePhoto ? (
+                      <img 
+                        src={createPreviewUrl(vehiclePhoto)} 
+                        alt="Araç" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Camera size={36} className="text-slate-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-slate-600 mb-3">Aracınızın fotoğrafını çekin veya yükleyin</p>
+                    <label className="bg-slate-700 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 shadow-lg transition-all cursor-pointer inline-flex items-center gap-2">
+                      {isCompressingVehicle ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          İşleniyor...
+                        </>
+                      ) : (
+                        <>
+                          <Camera size={16} />
+                          Fotoğraf Çek
+                        </>
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        capture="environment"
+                        className="hidden" 
+                        onChange={handleVehiclePhotoUpload}
+                        disabled={isCompressingVehicle}
+                      />
+                    </label>
+                    <p className="text-xs text-slate-400 mt-2">Fotoğraf otomatik olarak optimize edilecek</p>
+                  </div>
+                </div>
+              </div>
+
               {/* Info Box */}
               <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 flex items-start gap-3">
                 <Info size={20} className="text-blue-600 mt-0.5 shrink-0" />
@@ -1374,6 +1534,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                     setVehicleType('');
                     setVehicleDriver('');
                     setVehicleYear('');
+                    setVehiclePhoto(null);
                   }}
                   className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"
                 >
@@ -1391,6 +1552,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                       type: vehicleType,
                       driver: vehicleDriver,
                       year: vehicleYear,
+                      photo: vehiclePhoto ? 'Yüklendi' : 'Yok',
                       timestamp: new Date().toISOString()
                     });
                     alert('✅ Araç başarıyla filonuza eklendi! Belge yüklemek için "Belgelerim" bölümüne gidin.');
@@ -1400,6 +1562,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                     setVehicleType('');
                     setVehicleDriver('');
                     setVehicleYear('');
+                    setVehiclePhoto(null);
                   }}
                   disabled={!vehiclePlate.trim() || !vehicleModel.trim() || !vehicleType || !vehicleYear}
                   className="flex-1 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
@@ -2892,13 +3055,80 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                     </div>
                     
                     <div className="flex items-center gap-6 p-6 bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl border border-slate-200">
-                       <div className="w-24 h-24 rounded-2xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-50 hover:border-blue-400 transition-all group shadow-md">
-                          <Camera size={32} className="group-hover:text-blue-600 transition-colors" />
+                       <div className="w-24 h-24 rounded-2xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 overflow-hidden shadow-md">
+                          {companyLogo ? (
+                            <img 
+                              src={createPreviewUrl(companyLogo)} 
+                              alt="Firma Logosu" 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Camera size={32} className="text-slate-400" />
+                          )}
                        </div>
                        <div className="flex-1">
                           <h3 className="font-bold text-slate-800 mb-1">Firma Logosu</h3>
                           <p className="text-sm text-slate-500 mb-3">Profesyonel bir görünüm için firma logonuzu yükleyin</p>
-                          <button className="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">Logo Yükle</button>
+                          <label className="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all cursor-pointer inline-flex items-center gap-2">
+                            {isCompressingLogo ? (
+                              <>
+                                <Loader2 size={16} className="animate-spin" />
+                                İşleniyor...
+                              </>
+                            ) : (
+                              <>
+                                <Upload size={16} />
+                                Logo Yükle
+                              </>
+                            )}
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={handleLogoUpload}
+                              disabled={isCompressingLogo}
+                            />
+                          </label>
+                          <p className="text-xs text-slate-400 mt-2">PNG, JPG (Max. 2MB)</p>
+                       </div>
+                    </div>
+
+                    {/* Profil Fotoğrafı Alanı */}
+                    <div className="flex items-center gap-6 p-6 bg-gradient-to-r from-slate-50 to-purple-50 rounded-2xl border border-slate-200">
+                       <div className="w-24 h-24 rounded-full bg-white border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 overflow-hidden shadow-md">
+                          {profilePhoto ? (
+                            <img 
+                              src={createPreviewUrl(profilePhoto)} 
+                              alt="Profil Fotoğrafı" 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User size={32} className="text-slate-400" />
+                          )}
+                       </div>
+                       <div className="flex-1">
+                          <h3 className="font-bold text-slate-800 mb-1">Profil Fotoğrafı</h3>
+                          <p className="text-sm text-slate-500 mb-3">Hesabınız için profil fotoğrafı ekleyin</p>
+                          <label className="bg-purple-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all cursor-pointer inline-flex items-center gap-2">
+                            {isCompressingProfile ? (
+                              <>
+                                <Loader2 size={16} className="animate-spin" />
+                                İşleniyor...
+                              </>
+                            ) : (
+                              <>
+                                <Upload size={16} />
+                                Fotoğraf Yükle
+                              </>
+                            )}
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={handleProfilePhotoUpload}
+                              disabled={isCompressingProfile}
+                            />
+                          </label>
                           <p className="text-xs text-slate-400 mt-2">PNG, JPG (Max. 2MB)</p>
                        </div>
                     </div>
@@ -3427,8 +3657,57 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                      <div className="p-6 bg-blue-50 border-y border-blue-100"><div className="flex items-center gap-4 mb-4"><div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl font-bold text-blue-600 shadow-sm">{activeJob.customerName.charAt(0)}</div><div><h3 className="font-bold text-slate-900">{activeJob.customerName}</h3><p className="text-sm text-slate-500">{activeJob.vehicleInfo}</p></div></div><div className="grid grid-cols-2 gap-3"><button className="flex items-center justify-center gap-2 bg-white py-3 rounded-xl text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50"><Phone size={16} className="text-green-600" /> Ara</button><button className="flex items-center justify-center gap-2 bg-white py-3 rounded-xl text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50"><MessageSquare size={16} className="text-blue-600" /> Mesaj</button></div></div>
                      <div className="flex-1 p-6 overflow-y-auto">
                         <div className="relative space-y-8 pl-6 border-l-2 border-slate-100 ml-3 mb-8">{[{ id: 0, label: 'Kabul Edildi', time: '10:30' }, { id: 1, label: 'Yola Çıkıldı', time: jobStage >= 1 ? '10:32' : '-' }, { id: 2, label: 'Konuma Varıldı', time: jobStage >= 2 ? '10:45' : '-' }, { id: 3, label: 'Hizmet Tamamlandı', time: jobStage >= 3 ? '11:15' : '-' }].map((step) => (<div key={step.id} className="relative"><div className={`absolute -left-[31px] top-0 w-4 h-4 rounded-full border-[3px] border-white shadow-sm transition-colors ${jobStage >= step.id ? 'bg-green-500' : 'bg-slate-200'}`}></div><div className="flex justify-between items-center"><p className={`text-sm font-bold ${jobStage >= step.id ? 'text-slate-900' : 'text-slate-400'}`}>{step.label}</p><span className="text-xs text-slate-400">{step.time}</span></div></div>))}</div>
-                        {jobStage === 2 && !hasStartProof && (<div className="mb-6 bg-orange-50 p-4 rounded-xl border border-dashed border-orange-300 text-center animate-pulse"><Camera className="mx-auto text-orange-400 mb-2" size={24} /><p className="text-sm font-bold text-orange-700 mb-1">Başlangıç Fotoğrafı Zorunlu</p><p className="text-xs text-orange-600 mb-3">Hizmete başlamadan önce aracın durumunu belgeleyin.</p><button onClick={() => setHasStartProof(true)} className="bg-white border border-orange-200 text-orange-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-50 shadow-sm">Fotoğraf Çek / Yükle</button></div>)}
-                        {jobStage === 3 && !hasEndProof && (<div className="mb-6 bg-green-50 p-4 rounded-xl border border-dashed border-green-300 text-center animate-pulse"><Camera className="mx-auto text-green-400 mb-2" size={24} /><p className="text-sm font-bold text-green-700 mb-1">Hizmet Kanıtı Zorunlu</p><p className="text-xs text-green-600 mb-3">Tamamlamadan önce bitmiş işin fotoğrafını yükleyin.</p><button onClick={() => setHasEndProof(true)} className="bg-white border border-green-200 text-green-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-50 shadow-sm">Fotoğraf Çek / Yükle</button></div>)}
+                        
+                        {jobStage === 2 && !hasStartProof && (
+                          <div className="mb-6 bg-orange-50 p-4 rounded-xl border border-dashed border-orange-300 text-center animate-pulse">
+                            <Camera className="mx-auto text-orange-400 mb-2" size={24} />
+                            <p className="text-sm font-bold text-orange-700 mb-1">Başlangıç Fotoğrafı Zorunlu</p>
+                            <p className="text-xs text-orange-600 mb-3">Hizmete başlamadan önce aracın durumunu belgeleyin.</p>
+                            {isCompressingImage ? (
+                              <div className="flex items-center justify-center gap-2 text-orange-600">
+                                <Loader2 size={16} className="animate-spin" />
+                                <span className="text-xs font-bold">İşleniyor...</span>
+                              </div>
+                            ) : (
+                              <label className="inline-block bg-white border border-orange-200 text-orange-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-50 shadow-sm cursor-pointer">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  capture="environment"
+                                  onChange={(e) => handleImageUpload(e, 'start')}
+                                  className="hidden"
+                                />
+                                <Camera size={14} className="inline mr-1" /> Fotoğraf Çek / Yükle
+                              </label>
+                            )}
+                          </div>
+                        )}
+                        
+                        {jobStage === 3 && !hasEndProof && (
+                          <div className="mb-6 bg-green-50 p-4 rounded-xl border border-dashed border-green-300 text-center animate-pulse">
+                            <Camera className="mx-auto text-green-400 mb-2" size={24} />
+                            <p className="text-sm font-bold text-green-700 mb-1">Hizmet Kanıtı Zorunlu</p>
+                            <p className="text-xs text-green-600 mb-3">Tamamlamadan önce bitmiş işin fotoğrafını yükleyin.</p>
+                            {isCompressingImage ? (
+                              <div className="flex items-center justify-center gap-2 text-green-600">
+                                <Loader2 size={16} className="animate-spin" />
+                                <span className="text-xs font-bold">İşleniyor...</span>
+                              </div>
+                            ) : (
+                              <label className="inline-block bg-white border border-green-200 text-green-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-50 shadow-sm cursor-pointer">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  capture="environment"
+                                  onChange={(e) => handleImageUpload(e, 'end')}
+                                  className="hidden"
+                                />
+                                <Camera size={14} className="inline mr-1" /> Fotoğraf Çek / Yükle
+                              </label>
+                            )}
+                          </div>
+                        )}
+                        
                         <div className="mt-auto"><button onClick={advanceJobStage} className={`w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-3 ${jobStage === 0 ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200' : jobStage === 1 ? 'bg-purple-600 hover:bg-purple-700 shadow-purple-200' : jobStage === 2 ? 'bg-orange-500 hover:bg-orange-600 shadow-orange-200' : 'bg-green-600 hover:bg-green-700 shadow-green-200'}`}>{getStageLabel()} <ArrowRight size={20} /></button><button onClick={() => setActiveJob(null)} className="w-full mt-3 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors">Acil Durum / İptal</button></div>
                      </div>
                   </div>

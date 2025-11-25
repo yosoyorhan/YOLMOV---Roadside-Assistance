@@ -23,6 +23,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { CITIES_WITH_DISTRICTS } from '../constants';
+import { compressImage, isImageFile } from '../utils/imageCompression';
 
 const STEPS = [
   { id: 1, title: 'Araç Bilgileri' },
@@ -82,6 +83,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
   });
 
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
+  const [isCompressingPhoto, setIsCompressingPhoto] = useState(false);
 
   const validateStep = (step: number) => {
     const newErrors: Record<string, boolean> = {};
@@ -151,7 +153,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
@@ -164,23 +166,46 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
       return;
     }
 
-    // Her fotoğraf max 5MB
-    const oversizedFiles = newFiles.filter(file => file.size > 5 * 1024 * 1024);
-    if (oversizedFiles.length > 0) {
-      alert('Fotoğraflar en fazla 5MB olmalıdır');
-      return;
-    }
+    try {
+      setIsCompressingPhoto(true);
 
-    // Preview URL'leri oluştur
-    const newPreviewUrls = newFiles.map(file => URL.createObjectURL(file));
-    setPhotoPreviewUrls([...photoPreviewUrls, ...newPreviewUrls]);
-    
-    // Form data'ya ekle
-    updateData('damagePhotos', [...currentPhotos, ...newFiles]);
-    
-    // Hata varsa kaldır
-    if (errors.damagePhotos) {
-      setErrors(prev => ({ ...prev, damagePhotos: false }));
+      // Tüm fotoğrafları sıkıştır
+      const compressedFiles: File[] = [];
+      const newPreviewUrls: string[] = [];
+
+      for (const file of newFiles) {
+        if (!isImageFile(file)) {
+          alert('Lütfen sadece görsel dosyası yükleyin (JPG, PNG, vb.)');
+          continue;
+        }
+
+        // Her dosyayı sıkıştır
+        const result = await compressImage(file);
+        compressedFiles.push(result.compressedFile);
+        newPreviewUrls.push(URL.createObjectURL(result.compressedFile));
+
+        console.log(`Fotoğraf sıkıştırıldı: ${file.name}`, {
+          original: result.originalSize,
+          compressed: result.compressedSize,
+          ratio: result.compressionRatio
+        });
+      }
+
+      // Preview URL'leri ve dosyaları ekle
+      setPhotoPreviewUrls([...photoPreviewUrls, ...newPreviewUrls]);
+      updateData('damagePhotos', [...currentPhotos, ...compressedFiles]);
+      
+      // Hata varsa kaldır
+      if (errors.damagePhotos) {
+        setErrors(prev => ({ ...prev, damagePhotos: false }));
+      }
+
+      alert(`✅ ${compressedFiles.length} fotoğraf yüklendi ve optimize edildi.`);
+    } catch (error) {
+      console.error('Photo compression error:', error);
+      alert('❌ Fotoğraflar işlenirken bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsCompressingPhoto(false);
     }
   };
 
@@ -587,14 +612,25 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
           {formData.damagePhotos.length < 5 && (
             <label className={`border-2 border-dashed rounded-xl h-32 flex flex-col items-center justify-center cursor-pointer transition-all ${
               errors.damagePhotos ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-brand-orange hover:bg-orange-50'
-            }`}>
-              <Upload size={24} className="text-gray-400 mb-2" />
-              <span className="text-xs font-medium text-gray-500">Fotoğraf Ekle</span>
+            } ${isCompressingPhoto ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              {isCompressingPhoto ? (
+                <>
+                  <Loader2 size={24} className="text-brand-orange animate-spin mb-2" />
+                  <span className="text-xs font-medium text-brand-orange">İşleniyor...</span>
+                </>
+              ) : (
+                <>
+                  <Upload size={24} className="text-gray-400 mb-2" />
+                  <span className="text-xs font-medium text-gray-500">Fotoğraf Ekle</span>
+                </>
+              )}
               <input 
                 type="file" 
                 accept="image/*"
+                capture="environment"
                 multiple
                 onChange={handlePhotoUpload}
+                disabled={isCompressingPhoto}
                 className="hidden"
               />
             </label>

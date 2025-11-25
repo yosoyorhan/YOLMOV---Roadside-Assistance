@@ -4,7 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import { FileText, Upload, CheckCircle, XCircle, Clock, Eye, Download, Trash2, AlertTriangle } from 'lucide-react';
+import { FileText, Upload, CheckCircle, XCircle, Clock, Eye, Download, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { compressImage, isImageFile } from '../utils/imageCompression';
 
 interface Document {
   id: string;
@@ -52,25 +53,41 @@ export const PartnerDocuments: React.FC = () => {
     );
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !selectedType) return;
     
+    const file = e.target.files[0];
     setUploading(true);
-    // Simüle upload
-    setTimeout(() => {
-      const file = e.target.files![0];
-      const newDoc: Document = {
-        id: `DOC-${Date.now()}`,
-        type: selectedType as any,
-        name: file.name,
-        uploadDate: new Date().toISOString().split('T')[0],
-        status: 'pending',
-        fileSize: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-      };
-      setDocuments([...documents, newDoc]);
+    
+    try {
+      let finalFile = file;
+      
+      // Eğer görsel dosyası ise sıkıştır
+      if (isImageFile(file)) {
+        const result = await compressImage(file);
+        finalFile = result.compressedFile;
+        console.log(`📄 Belge sıkıştırıldı: ${result.compressionRatio.toFixed(1)}% küçültüldü`);
+      }
+      
+      // Simüle upload
+      setTimeout(() => {
+        const newDoc: Document = {
+          id: `DOC-${Date.now()}`,
+          type: selectedType as any,
+          name: finalFile.name,
+          uploadDate: new Date().toISOString().split('T')[0],
+          status: 'pending',
+          fileSize: `${(finalFile.size / 1024 / 1024).toFixed(1)} MB`,
+        };
+        setDocuments([...documents, newDoc]);
+        setUploading(false);
+        setSelectedType('');
+      }, 1500);
+    } catch (error) {
+      console.error('Belge yükleme hatası:', error);
+      alert('Belge yüklenirken hata oluştu. Lütfen tekrar deneyin.');
       setUploading(false);
-      setSelectedType('');
-    }, 1500);
+    }
   };
 
   const stats = {
@@ -151,7 +168,7 @@ export const PartnerDocuments: React.FC = () => {
           </select>
 
           <label className={`px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${selectedType ? 'bg-orange-600 text-white cursor-pointer hover:bg-orange-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
-            <Upload size={18} />
+            {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
             {uploading ? 'Yükleniyor...' : 'Belge Seç ve Yükle'}
             <input
               type="file"
