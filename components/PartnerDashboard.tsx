@@ -74,6 +74,70 @@ const NEGATIVE_RATING_TAGS = [
   'İletişim Zor', 'Geç Geldi', 'Ödeme Sorunu', 'Konum Hatalı', 'Kaba Davranış', 'Bekletti'
 ];
 
+// MOCK REVIEWS DATA - Müşteri değerlendirmeleri
+const MOCK_REVIEWS = [
+  {
+    id: 'REV-001',
+    jobId: 'JOB-4923',
+    customerName: 'Ahmet Y.',
+    customerPhone: '0555 *** ** 12',
+    service: 'Çekici Hizmeti',
+    date: '22 Kas 2023, 15:30',
+    rating: 5,
+    comment: 'Çok hızlı geldi, işini profesyonelce yaptı. Teşekkürler!',
+    tags: ['Kibar Müşteri', 'Sorunsuz Ödeme', 'Bahşiş Bıraktı'],
+    isVisible: true
+  },
+  {
+    id: 'REV-002',
+    jobId: 'JOB-4920',
+    customerName: 'M*** K***',
+    customerPhone: '**********',
+    service: 'Akü Takviyesi',
+    date: '19 Kas 2023, 10:15',
+    rating: 2,
+    comment: 'Geç geldi, müşteri hizmetleri vasat.',
+    tags: ['Geç Geldi', 'İletişim Zor'],
+    isVisible: false
+  },
+  {
+    id: 'REV-003',
+    jobId: 'JOB-4918',
+    customerName: 'Selin K.',
+    customerPhone: '0532 *** ** 45',
+    service: 'Çekici Hizmeti',
+    date: '15 Kas 2023, 14:00',
+    rating: 4,
+    comment: 'Gayet iyiydi, fiyat biraz yüksek geldi ama memnunum.',
+    tags: ['Anlayışlı', 'İletişim Kolaydı'],
+    isVisible: true
+  },
+  {
+    id: 'REV-004',
+    jobId: 'JOB-4915',
+    customerName: 'B*** Y***',
+    customerPhone: '**********',
+    service: 'Çekici Hizmeti',
+    date: '12 Kas 2023, 09:30',
+    rating: 1,
+    comment: 'Çok kötü bir deneyimdi, asla tavsiye etmem.',
+    tags: ['Kaba Davranış', 'Ödeme Sorunu'],
+    isVisible: false
+  },
+  {
+    id: 'REV-005',
+    jobId: 'JOB-4912',
+    customerName: 'Zeynep A.',
+    customerPhone: '0544 *** ** 78',
+    service: 'Lastik Değişimi',
+    date: '10 Kas 2023, 16:45',
+    rating: 5,
+    comment: 'Hayat kurtardınız! Çok teşekkürler, kesinlikle tavsiye ederim.',
+    tags: ['Konum Doğruydu', 'Sorunsuz Ödeme'],
+    isVisible: true
+  }
+];
+
 const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
   const [isOnline, setIsOnline] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
@@ -482,7 +546,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
           className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+          <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-6 text-white">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-2xl font-bold">{job.serviceType}</h2>
               <button
@@ -1028,10 +1092,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
       return (
          <div className="p-4 md:p-6 space-y-6">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg shadow-blue-900/20">
+            <div className="bg-gradient-to-r from-slate-700 to-slate-800 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg shadow-slate-900/20">
                <div className="relative z-10">
                   <h2 className="text-2xl font-bold mb-2">{editingRouteId ? 'Rotayı Düzenle' : 'Boş Dönüş & Hizmet Rotaları'}</h2>
-                  <p className="text-blue-100 max-w-xl text-sm mb-6">
+                  <p className="text-slate-100 max-w-xl text-sm mb-6">
                      {editingRouteId 
                         ? 'Mevcut rotadaki bilgileri güncelleyin.' 
                         : 'Dönüş yolunda veya belirli tarihlerde gideceğiniz güzergahları ekleyin, o rotadaki iş fırsatlarını size öncelikli olarak ve indirimli sunalım.'}
@@ -1289,6 +1353,112 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       );
   };
 
+  // ============== DEĞERLENDİRMELER TAB ==============
+  const renderReviewsTab = () => (
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Müşteri Değerlendirmeleri</h2>
+          <p className="text-sm text-slate-500">Aldığınız puanlar ve yorumlar</p>
+        </div>
+        <div className="bg-slate-800 rounded-2xl p-4 text-white">
+          <div className="flex items-center gap-2">
+            <Star size={24} fill="currentColor" />
+            <span className="text-3xl font-bold">4.2</span>
+          </div>
+          <p className="text-xs text-slate-300 mt-1">{MOCK_REVIEWS.length} Değerlendirme</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2">
+        <button className="px-4 py-2 bg-slate-800 text-white rounded-xl text-sm font-bold">Tümü</button>
+        <button className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50">5 Yıldız</button>
+        <button className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50">Düşük Puan</button>
+      </div>
+
+      {/* Reviews List */}
+      <div className="space-y-4">
+        {MOCK_REVIEWS.map(review => (
+          <div key={review.id} className={`bg-white rounded-2xl border-2 p-6 transition-all ${
+            review.rating >= 4 ? 'border-slate-200' : 'border-red-200 bg-red-50/30'
+          }`}>
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-start gap-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
+                  review.rating >= 4 ? 'bg-slate-700' : 'bg-red-500'
+                }`}>
+                  {review.rating >= 4 ? review.customerName.charAt(0) : '?'}
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800">
+                    {review.rating >= 4 ? review.customerName : review.customerName}
+                  </h3>
+                  <p className="text-xs text-slate-500">{review.date} • {review.service}</p>
+                  {review.rating >= 4 ? (
+                    <p className="text-xs text-slate-400 mt-1">{review.customerPhone}</p>
+                  ) : (
+                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                      <ShieldAlert size={12} />
+                      Düşük puan nedeniyle gizlendi
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star 
+                    key={i} 
+                    size={18} 
+                    fill={i < review.rating ? "#FFA500" : "none"} 
+                    className={i < review.rating ? "text-orange-500" : "text-slate-300"}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-700 mb-4">{review.comment}</p>
+
+            <div className="flex flex-wrap gap-2">
+              {review.tags.map((tag, idx) => (
+                <span 
+                  key={idx} 
+                  className={`text-xs px-3 py-1 rounded-full font-bold ${
+                    POSITIVE_RATING_TAGS.includes(tag)
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+              <span className="text-xs text-slate-400">İş No: #{review.jobId}</span>
+              {review.rating < 4 && (
+                <button className="text-xs text-slate-500 hover:text-slate-700 font-bold flex items-center gap-1">
+                  <HelpCircle size={14} /> İtiraz Et
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Info Box */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <div className="flex gap-3">
+          <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+          <div className="text-sm text-blue-800">
+            <p className="font-bold mb-1">Düşük Puanlı Değerlendirmeler</p>
+            <p>3 yıldız ve altı puan alan işlerde müşteri bilgileri gizlenir. Bu puanlar ortalamanıza dahildir ancak iletişim bilgilerine erişiminiz kısıtlanır.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderSupportTab = () => (
      <div className="p-4 md:p-6 h-full flex flex-col">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -1536,26 +1706,26 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
             onClick={() => setEmptyTruckType('intercity')}
             className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
               emptyTruckType === 'intercity'
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? 'bg-slate-900 text-white shadow-lg'
                 : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
-            🌍 Şehirler Arası
+            Şehirler Arası
           </button>
           <button
             onClick={() => setEmptyTruckType('intracity')}
             className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
               emptyTruckType === 'intracity'
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? 'bg-slate-900 text-white shadow-lg'
                 : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
-            🏙️ Şehir İçi
+            Şehir İçi
           </button>
         </div>
 
         {/* Add Form */}
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-6 md:p-8 text-white shadow-2xl">
+        <div className="bg-slate-800 rounded-3xl p-6 md:p-8 text-white shadow-2xl">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
             <Truck size={28} /> Boş Araç İlanı Oluştur
           </h2>
@@ -1680,7 +1850,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                     <div>
                       <p className="font-bold text-slate-800">{truck.vehicle}</p>
                       <p className="text-xs text-slate-500">
-                        {truck.type === 'intercity' ? '🌍 Şehirler Arası' : '🏙️ Şehir İçi'}
+                        {truck.type === 'intercity' ? 'Şehirler Arası' : 'Şehir İçi'}
                       </p>
                     </div>
                   </div>
@@ -1744,7 +1914,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <button
           onClick={() => setActiveTab('requests')}
-          className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left"
+          className="bg-slate-800 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left"
         >
           <div className="flex items-center justify-between mb-2">
             <Bell size={24} className="opacity-80" />
@@ -1755,7 +1925,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
         <button
           onClick={() => setActiveTab('history')}
-          className="bg-gradient-to-br from-green-600 to-green-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left"
+          className="bg-slate-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left"
         >
           <div className="flex items-center justify-between mb-2">
             <CheckCircle size={24} className="opacity-80" />
@@ -1766,7 +1936,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
         <button
           onClick={() => setActiveTab('emptyTrucks')}
-          className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left"
+          className="bg-slate-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left"
         >
           <div className="flex items-center justify-between mb-2">
             <Truck size={24} className="opacity-80" />
@@ -1775,7 +1945,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
           <p className="text-sm font-bold opacity-80">Boş Araç</p>
         </button>
 
-        <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
+        <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-2">
             <Star size={24} className="opacity-80" fill="currentColor" />
             <span className="text-3xl font-black">4.9</span>
@@ -1883,7 +2053,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         {/* Profil Özeti Kartları */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
            {/* Firma Adı Kartı */}
-           <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
+           <div className="bg-slate-800 rounded-2xl p-6 text-white shadow-lg">
               <div className="flex items-center gap-3 mb-2">
                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                     <Briefcase size={20} />
@@ -1896,7 +2066,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
            </div>
 
            {/* İletişim Kartı */}
-           <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
+           <div className="bg-slate-700 rounded-2xl p-6 text-white shadow-lg">
               <div className="flex items-center gap-3 mb-2">
                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                     <Phone size={20} />
@@ -1910,7 +2080,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
            </div>
 
            {/* Kredi Kartı */}
-           <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-2xl p-6 text-white shadow-lg">
+           <div className="bg-slate-600 rounded-2xl p-6 text-white shadow-lg">
               <div className="flex items-center gap-3 mb-2">
                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                     <DollarSign size={20} />
@@ -1923,7 +2093,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
            </div>
 
            {/* Puan Kartı */}
-           <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-6 text-white shadow-lg">
+           <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-lg">
               <div className="flex items-center gap-3 mb-2">
                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                     <Star size={20} fill="currentColor" />
@@ -2029,10 +2199,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
                     <div className="space-y-4">
                        {/* Yeni İş Bildirimleri */}
-                       <div className="p-5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
+                       <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
                           <div className="flex items-center justify-between mb-4">
                              <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-white shadow-md">
                                    <Bell size={20} />
                                 </div>
                                 <div>
@@ -2042,26 +2212,26 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                              </div>
                           </div>
                           <div className="space-y-3 ml-15">
-                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-blue-50 transition-colors">
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
                                 <span className="text-sm font-bold text-slate-700">Push Bildirimi</span>
-                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
                              </label>
-                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-blue-50 transition-colors">
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
                                 <span className="text-sm font-bold text-slate-700">SMS Bildirimi</span>
-                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
                              </label>
-                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-blue-50 transition-colors">
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
                                 <span className="text-sm font-bold text-slate-700">E-posta Bildirimi</span>
-                                <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
                              </label>
                           </div>
                        </div>
 
                        {/* Teklif Durumu */}
-                       <div className="p-5 bg-gradient-to-r from-green-50 to-green-100 rounded-2xl border border-green-200">
+                       <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
                           <div className="flex items-center justify-between mb-4">
                              <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                                <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center text-white shadow-md">
                                    <CheckCircle2 size={20} />
                                 </div>
                                 <div>
@@ -2071,22 +2241,22 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                              </div>
                           </div>
                           <div className="space-y-3 ml-15">
-                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-green-50 transition-colors">
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
                                 <span className="text-sm font-bold text-slate-700">Push Bildirimi</span>
-                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-green-600 focus:ring-green-500" />
+                                <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
                              </label>
-                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-green-50 transition-colors">
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
                                 <span className="text-sm font-bold text-slate-700">SMS Bildirimi</span>
-                                <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-green-600 focus:ring-green-500" />
+                                <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
                              </label>
                           </div>
                        </div>
 
                        {/* Ödeme Bildirimleri */}
-                       <div className="p-5 bg-gradient-to-r from-purple-50 to-purple-100 rounded-2xl border border-purple-200">
+                       <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
                           <div className="flex items-center justify-between mb-4">
                              <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                                <div className="w-12 h-12 bg-slate-600 rounded-xl flex items-center justify-center text-white shadow-md">
                                    <DollarSign size={20} />
                                 </div>
                                 <div>
@@ -2096,7 +2266,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                              </div>
                           </div>
                           <div className="space-y-3 ml-15">
-                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-purple-50 transition-colors">
+                             <label className="flex items-center justify-between p-3 bg-white rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
                                 <span className="text-sm font-bold text-slate-700">Push Bildirimi</span>
                                 <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-purple-600 focus:ring-purple-500" />
                              </label>
@@ -2419,6 +2589,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               { id: 'payments', label: 'Ödemeler', icon: Receipt },
               { id: 'documents', label: 'Belgelerim', icon: FileCheck },
               { id: 'history', label: 'Geçmiş İşler', icon: History },
+              { id: 'reviews', label: 'Değerlendirmeler', icon: Star },
               { id: 'wallet', label: 'Finansal Durum', icon: Wallet },
               { id: 'fleet', label: 'Filo Yönetimi', icon: Truck },
               { id: 'support', label: 'Destek Merkezi', icon: Headphones },
@@ -2427,7 +2598,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-center lg:justify-start p-3 rounded-xl transition-all ${activeTab === item.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                className={`w-full flex items-center justify-center lg:justify-start p-3 rounded-xl transition-all ${activeTab === item.id ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
               >
                 <item.icon size={20} />
                 <span className="hidden lg:block ml-3 font-medium">{item.label}</span>
@@ -2463,16 +2634,17 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         {/* TOP HEADER */}
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-10 sticky top-0 z-20">
           <h1 className="text-lg lg:text-xl font-bold text-slate-800 flex items-center gap-2 lg:gap-3 truncate">
-            {activeTab === 'home' && '🏠 Dashboard Ana Sayfa'}
-            {activeTab === 'newJobs' && '⭐ Yeni İş Talepleri'}
+            {activeTab === 'home' && 'Dashboard Ana Sayfa'}
+            {activeTab === 'newJobs' && 'Yeni İş Talepleri'}
             {activeTab === 'requests' && 'İş Talepleri'}
             {activeTab === 'active' && 'Aktif Operasyon'}
-            {activeTab === 'emptyTrucks' && '🚛 Boş Dönen Araçlar'}
+            {activeTab === 'emptyTrucks' && 'Boş Dönen Araçlar'}
             {activeTab === 'offer_history' && 'Teklif Geçmişim'}
             {activeTab === 'payments' && 'Ödemeler & Komisyon'}
             {activeTab === 'documents' && 'Belgelerim'}
             {activeTab === 'wallet' && 'Finansal Durum'}
             {activeTab === 'history' && 'İş Geçmişi'}
+            {activeTab === 'reviews' && 'Müşteri Değerlendirmeleri'}
             {activeTab === 'settings' && 'Hesap Ayarları'}
             {activeTab === 'fleet' && 'Filo Yönetimi'}
             {activeTab === 'support' && 'Destek Merkezi'}
@@ -2527,6 +2699,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
           {activeTab === 'payments' && <PartnerPayments />}
           {activeTab === 'documents' && <PartnerDocuments />}
           {activeTab === 'history' && renderHistoryTab()}
+          {activeTab === 'reviews' && renderReviewsTab()}
           {activeTab === 'wallet' && renderWalletTab()}
           {activeTab === 'settings' && renderSettingsTab()}
           {activeTab === 'fleet' && renderFleetTab()}
