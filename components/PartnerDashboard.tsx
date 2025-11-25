@@ -3187,7 +3187,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         {/* Active Trucks List */}
         <div>
           <h3 className="font-bold text-slate-800 text-xl mb-4 flex items-center gap-2">
-            <Route size={24} className="text-blue-600" /> Son Eklenen Araçlar
+            <Route size={24} className="text-blue-600" /> Boş Dönen Araçlar
           </h3>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -3342,7 +3342,7 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         <div className="bg-white rounded-2xl border-2 border-slate-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-              <Truck size={20} className="text-orange-600" /> Son Eklenen Araçlar
+              <Truck size={20} className="text-orange-600" /> Boş Dönen Araçlar
             </h3>
             <button
               onClick={() => setActiveTab('emptyTrucks')}
