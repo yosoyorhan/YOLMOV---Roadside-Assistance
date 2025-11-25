@@ -235,13 +235,13 @@ export const PartnerDocuments: React.FC = () => {
                 <div className="flex flex-col items-end gap-2">
                   {getStatusBadge(doc.status)}
                   <div className="flex gap-2">
-                    <button className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200">
+                    <button onClick={() => alert(`'${doc.name}' görüntüleniyor.`)} className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200">
                       <Eye size={16} className="text-gray-600" />
                     </button>
-                    <button className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200">
+                    <button onClick={() => alert(`'${doc.name}' indiriliyor.`)} className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200">
                       <Download size={16} className="text-gray-600" />
                     </button>
-                    <button className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center hover:bg-red-100">
+                    <button onClick={() => setDocuments(documents.filter(d => d.id !== doc.id))} className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center hover:bg-red-100">
                       <Trash2 size={16} className="text-red-600" />
                     </button>
                   </div>

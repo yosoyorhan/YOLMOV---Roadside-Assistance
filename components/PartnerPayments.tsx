@@ -155,16 +155,6 @@ export const PartnerPayments: React.FC = () => {
           <p className="text-xs text-green-100 mt-1">{completedJobsCount} İş Tamamlandı</p>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <Wallet size={24} />
-            </div>
-            <Clock size={20} className="opacity-60" />
-          </div>
-          <p className="text-sm text-blue-100 mb-1">Bekleyen Ödemeler</p>
-          <p className="text-3xl font-bold">{pendingPayments.toLocaleString()} ₺</p>
-        </div>
 
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-5 text-white shadow-lg">
           <div className="flex items-center justify-between mb-3">
@@ -239,7 +229,10 @@ export const PartnerPayments: React.FC = () => {
             </select>
           </div>
 
-          <button className="ml-auto px-6 py-2.5 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center gap-2">
+          <button
+            onClick={() => alert('Rapor indirme işlemi başlatıldı.')}
+            className="ml-auto px-6 py-2.5 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center gap-2"
+          >
             <Download size={18} />
             Rapor İndir
           </button>
