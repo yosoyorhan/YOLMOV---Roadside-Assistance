@@ -58,15 +58,22 @@ function App() {
   // Initialize test notifications
   useEffect(() => {
     const initNotifications = async () => {
+      // Bildirimi ilk açılışta göster
+      console.log('🔔 Bildirim izni isteniyor...');
       const permitted = await requestNotificationPermission();
+      
       if (permitted) {
-        // 3 saniye sonra test bildirimlerini başlat
+        console.log('✅ Bildirim izni alındı, test bildirimleri başlatılıyor...');
+        // İlk bildirimi 2 saniye sonra gönder
         setTimeout(() => {
           startTestNotifications();
-        }, 3000);
+        }, 2000);
+      } else {
+        console.warn('❌ Bildirim izni verilmedi');
       }
     };
     
+    // Sayfa yüklendiğinde hemen çalıştır
     initNotifications();
   }, []);
 

@@ -16,6 +16,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [locationStep, setLocationStep] = useState<'city' | 'district'>('city');
   const [locationSearch, setLocationSearch] = useState('');
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -93,6 +94,112 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
     setSelectedCity('');
     setLocationSearch('');
     inputRef.current?.focus();
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Tarayıcınız konum özelliğini desteklemiyor.');
+      return;
+    }
+
+    console.log('🌍 Konum servisi isteniyor (Hero)...');
+    setIsLoadingLocation(true);
+    setIsLocationOpen(false);
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        console.log('✅ Konum alındı:', position.coords);
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          console.log('🔍 Reverse geocoding başlatılıyor...');
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=tr`,
+            {
+              headers: {
+                'User-Agent': 'YOLMOV App'
+              }
+            }
+          );
+          
+          if (!response.ok) {
+            throw new Error('Geocoding API hatası');
+          }
+          
+          const data = await response.json();
+          console.log('📍 Geocoding sonucu:', data);
+          
+          const address = data.address || {};
+          let city = address.province || address.state || address.city || address.town;
+          let district = address.county || address.district || address.suburb || address.neighbourhood;
+          
+          console.log('🏙️ Tespit edilen şehir:', city, '/ İlçe:', district);
+          
+          const matchedCity = Object.keys(CITIES_WITH_DISTRICTS).find(
+            c => c.toLowerCase() === city?.toLowerCase()
+          );
+          
+          if (matchedCity) {
+            console.log('✅ Şehir eşleşti:', matchedCity);
+            handleSelectCity(matchedCity);
+            
+            const districts = CITIES_WITH_DISTRICTS[matchedCity];
+            const matchedDistrict = districts.find(
+              d => d.toLowerCase().includes(district?.toLowerCase()) || 
+                   district?.toLowerCase().includes(d.toLowerCase())
+            );
+            
+            if (matchedDistrict) {
+              console.log('✅ İlçe eşleşti:', matchedDistrict);
+              setTimeout(() => {
+                handleSelectDistrict(matchedDistrict);
+              }, 300);
+            } else {
+              console.warn('⚠️ İlçe eşleşmedi, şehir seçildi');
+              setLocationStep('district');
+              setIsLocationOpen(true);
+            }
+            
+            alert(`📍 Konumunuz: ${matchedCity}${matchedDistrict ? ' / ' + matchedDistrict : ''}`);
+          } else {
+            console.warn('⚠️ Şehir sistemde bulunamadı:', city);
+            alert('Konumunuz tespit edildi ancak şehir listesinde bulunamadı. Lütfen manuel seçin.');
+          }
+          
+          setIsLoadingLocation(false);
+        } catch (error) {
+          console.error('❌ Reverse geocoding error:', error);
+          alert('Konum bilgisi alınamadı. Lütfen manuel olarak seçin.');
+          setIsLoadingLocation(false);
+          setIsLocationOpen(true);
+        }
+      },
+      (error) => {
+        console.error('❌ Geolocation error:', error);
+        let errorMessage = 'Konum erişimi reddedildi.';
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Konum izni reddedildi. Tarayıcı ayarlarından konum iznini açın.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Konum bilgisi kullanılamıyor. GPS/Wi-Fi açık olduğundan emin olun.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Konum tespiti zaman aşımına uğradı. Tekrar deneyin.';
+            break;
+        }
+        
+        alert(errorMessage + ' Manuel olarak seçebilirsiniz.');
+        setIsLoadingLocation(false);
+        setIsLocationOpen(true);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
+    );
   };
 
   const handleSearchClick = () => {
@@ -382,16 +489,14 @@ const Hero: React.FC<HeroProps> = ({ onSearch }) => {
 
                         {locationStep === 'city' && (
                           <button 
-                            className="w-full flex items-center gap-3 text-brand-orange font-semibold p-3 hover:bg-orange-50 rounded-xl transition-colors text-sm"
-                            onClick={() => {
-                              handleSelectCity("İstanbul");
-                              setTimeout(() => handleSelectDistrict("Kadıköy"), 300);
-                            }}
+                            className="w-full flex items-center gap-3 text-brand-orange font-semibold p-3 hover:bg-orange-50 rounded-xl transition-colors text-sm disabled:opacity-50"
+                            onClick={handleUseCurrentLocation}
+                            disabled={isLoadingLocation}
                           >
                             <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-                              <Navigation size={14} fill="currentColor" />
+                              <Navigation size={14} fill="currentColor" className={isLoadingLocation ? 'animate-spin' : ''} />
                             </div>
-                            Mevcut Konumumu Kullan
+                            {isLoadingLocation ? 'Konum Alınıyor...' : 'Mevcut Konumumu Kullan'}
                           </button>
                         )}
                       </div>

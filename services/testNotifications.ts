@@ -32,15 +32,15 @@ let currentMessageIndex = 0;
 let testInterval: NodeJS.Timeout | null = null;
 
 export const startTestNotifications = () => {
-  // Test için 5 dakikada bir bildirim gönder
-  const INTERVAL = 5 * 60 * 1000; // 5 dakika
+  // Test için 1 dakikada bir bildirim gönder (test amaçlı)
+  const INTERVAL = 1 * 60 * 1000; // 1 dakika
 
-  console.log('🔔 Test bildirimleri başlatıldı (5 dakikada bir)');
+  console.log('🔔 Test bildirimleri başlatıldı (1 dakikada bir)');
 
   // İlk bildirimi hemen gönder
   sendTestNotification();
 
-  // Sonra 5 dakikada bir devam et
+  // Sonra 1 dakikada bir devam et
   testInterval = setInterval(() => {
     sendTestNotification();
   }, INTERVAL);

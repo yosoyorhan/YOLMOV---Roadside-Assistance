@@ -143,22 +143,39 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
       return;
     }
 
+    console.log('🌍 Konum servisi isteniyor...');
     setIsLoadingLocation(true);
+    
     navigator.geolocation.getCurrentPosition(
       async (position) => {
+        console.log('✅ Konum alındı:', position.coords);
         const { latitude, longitude } = position.coords;
         
         try {
           // Reverse geocoding with Nominatim (free, no API key needed)
+          console.log('🔍 Reverse geocoding başlatılıyor...');
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=tr`
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=tr`,
+            {
+              headers: {
+                'User-Agent': 'YOLMOV App'
+              }
+            }
           );
+          
+          if (!response.ok) {
+            throw new Error('Geocoding API hatası');
+          }
+          
           const data = await response.json();
+          console.log('📍 Geocoding sonucu:', data);
           
           // Extract city and district from address
           const address = data.address || {};
-          let city = address.province || address.state || address.city;
-          let district = address.county || address.town || address.suburb || address.district;
+          let city = address.province || address.state || address.city || address.town;
+          let district = address.county || address.district || address.suburb || address.neighbourhood;
+          
+          console.log('🏙️ Tespit edilen şehir:', city, '/ İlçe:', district);
           
           // Match city with our CITIES_WITH_DISTRICTS
           const matchedCity = Object.keys(CITIES_WITH_DISTRICTS).find(
@@ -166,6 +183,7 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
           );
           
           if (matchedCity) {
+            console.log('✅ Şehir eşleşti:', matchedCity);
             updateData('fromCity', matchedCity);
             
             // Try to match district
@@ -176,25 +194,47 @@ const QuoteWizard: React.FC<QuoteWizardProps> = ({ onHome, onViewOffers }) => {
             );
             
             if (matchedDistrict) {
+              console.log('✅ İlçe eşleşti:', matchedDistrict);
               updateData('fromDistrict', matchedDistrict);
+            } else {
+              console.warn('⚠️ İlçe eşleşmedi, manuel seçim gerekli');
             }
+            
+            alert(`📍 Konumunuz tespit edildi: ${matchedCity}${matchedDistrict ? ' / ' + matchedDistrict : ''}`);
+          } else {
+            console.warn('⚠️ Şehir sistemde bulunamadı:', city);
+            alert('Konumunuz tespit edildi ancak şehir listesinde bulunamadı. Lütfen manuel olarak seçin.');
           }
           
           setIsLoadingLocation(false);
         } catch (error) {
-          console.error('Reverse geocoding error:', error);
+          console.error('❌ Reverse geocoding error:', error);
           alert('Konum bilgisi alınamadı. Lütfen manuel olarak seçin.');
           setIsLoadingLocation(false);
         }
       },
       (error) => {
-        console.error('Geolocation error:', error);
-        alert('Konum erişimi reddedildi veya alınamadı. Lütfen manuel olarak seçin.');
+        console.error('❌ Geolocation error:', error);
+        let errorMessage = 'Konum erişimi reddedildi veya alınamadı.';
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Konum izni reddedildi. Lütfen tarayıcı ayarlarından konum iznini açın.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Konum bilgisi kullanılamıyor. GPS/Wi-Fi açık olduğundan emin olun.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Konum tespiti zaman aşımına uğradı. Tekrar deneyin.';
+            break;
+        }
+        
+        alert(errorMessage + ' Lütfen manuel olarak seçin.');
         setIsLoadingLocation(false);
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0
       }
     );
