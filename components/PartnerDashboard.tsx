@@ -1273,8 +1273,8 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       <div className="w-20 lg:w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 transition-all duration-300 sticky top-0 h-screen z-30">
         <div>
           <div className="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-800">
-            <img src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-logo-cutter-beyaz.png" alt="Yolmov Partner" className="hidden lg:block h-8 w-auto object-contain" />
-            <img src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-icon-beyaz-removebg-preview.png" alt="Yolmov Icon" className="lg:hidden h-8 w-auto object-contain" />
+            <img src="/assets/logo-light.svg" alt="Yolmov Partner" className="hidden lg:block h-8 w-auto object-contain" />
+            <img src="/assets/logo-light.svg" alt="Yolmov Icon" className="lg:hidden h-8 w-auto object-contain" />
           </div>
 
           <nav className="mt-8 px-2 space-y-2">

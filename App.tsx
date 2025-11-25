@@ -16,7 +16,7 @@ import PartnerRegisterPage from './components/PartnerRegisterPage';
 import PartnerDashboard from './components/PartnerDashboard';
 import OffersPanel from './components/OffersPanel';
 import AdminLoginPage from './components/AdminLoginPage';
-import AdminDashboard from './components/AdminDashboard';
+import AdminDashboard from './components/admin/AdminDashboard';
 import AboutPage from './components/AboutPage';
 import ServicesPage from './components/ServicesPage';
 import FAQPage from './components/FAQPage';
