@@ -149,7 +149,7 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
                       onClick={onViewOffers} 
                       className="w-full py-3 rounded-xl bg-brand-orange text-white text-sm font-bold hover:bg-brand-lightOrange transition-colors shadow-lg"
                     >
-                      📋 Tekliflerimi Gör
+                      Tekliflerimi Gör
                     </button>
                   )}
                   <div className="flex gap-2">

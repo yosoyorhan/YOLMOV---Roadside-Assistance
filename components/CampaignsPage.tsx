@@ -51,6 +51,15 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ onBack }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
+                onClick={() => {
+                  const event = new CustomEvent('yolmov:navigate', { 
+                    detail: { 
+                      page: 'campaign-detail',
+                      campaign: camp
+                    } 
+                  });
+                  window.dispatchEvent(event);
+                }}
                 className="group relative h-[500px] rounded-3xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all"
               >
                 {/* Background Image */}

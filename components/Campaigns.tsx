@@ -64,7 +64,12 @@ const Campaigns: React.FC = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
               onClick={() => {
-                const event = new CustomEvent('yolmov:navigate', { detail: { page: 'campaigns' } });
+                const event = new CustomEvent('yolmov:navigate', { 
+                  detail: { 
+                    page: 'campaign-detail',
+                    campaign: camp
+                  } 
+                });
                 window.dispatchEvent(event);
               }}
               className="min-w-[85vw] md:min-w-[calc(50%-12px)] lg:min-w-[calc(33.33%-16px)] snap-center group relative h-[450px] rounded-3xl overflow-hidden cursor-pointer shadow-md"
@@ -112,6 +117,10 @@ const Campaigns: React.FC = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: CAMPAIGNS.length * 0.1 }}
+              onClick={() => {
+                const event = new CustomEvent('yolmov:navigate', { detail: { page: 'campaigns' } });
+                window.dispatchEvent(event);
+              }}
               className="min-w-[85vw] md:min-w-[calc(50%-12px)] lg:min-w-[calc(33.33%-16px)] snap-center bg-gray-50 rounded-3xl flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-200 hover:border-brand-orange hover:bg-orange-50 transition-all cursor-pointer group h-[450px]"
             >
               <div className="w-20 h-20 rounded-full bg-white shadow-md flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">

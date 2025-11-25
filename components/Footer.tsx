@@ -1,5 +1,5 @@
 import React from 'react';
-import { Twitter, Facebook, Linkedin, Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, Mail, MapPin } from 'lucide-react';
 
 interface FooterProps {
   onNavigate?: (page: 'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog') => void;
@@ -28,16 +28,9 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 className="h-10 w-auto object-contain"
               />
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6">
+            <p className="text-gray-400 text-sm leading-relaxed">
               Yolda kaldığınız her an yanınızdayız. Modern, hızlı ve güvenilir yol yardım platformu.
             </p>
-            <div className="flex space-x-4">
-              {[Twitter, Facebook, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="w-8 h-8 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:bg-brand-orange hover:text-white transition-all">
-                  <Icon size={16} />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -112,8 +105,24 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             &copy; {new Date().getFullYear()} YOLMOV Teknoloji A.Ş. Tüm hakları saklıdır.
           </p>
           <div className="flex space-x-6 text-xs text-gray-500">
-            <a href="#" className="hover:text-white">Gizlilik Politikası</a>
-            <a href="#" className="hover:text-white">Kullanım Koşulları</a>
+            <button 
+              onClick={() => {
+                const event = new CustomEvent('yolmov:navigate', { detail: { page: 'privacy-policy' } });
+                window.dispatchEvent(event);
+              }}
+              className="hover:text-white transition-colors"
+            >
+              Gizlilik Politikası
+            </button>
+            <button 
+              onClick={() => {
+                const event = new CustomEvent('yolmov:navigate', { detail: { page: 'terms-of-service' } });
+                window.dispatchEvent(event);
+              }}
+              className="hover:text-white transition-colors"
+            >
+              Kullanım Koşulları
+            </button>
           </div>
         </div>
 

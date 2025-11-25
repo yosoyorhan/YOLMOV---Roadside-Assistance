@@ -35,20 +35,6 @@ const ContactPage: React.FC = () => {
       details: ['7/24 Anlık Destek', 'Hızlı çözüm için'],
       color: 'text-blue-600',
       bg: 'bg-blue-50'
-    },
-    {
-      icon: Headphones,
-      title: 'İletişim Formu',
-      details: ['Mesaj gönderin', 'En kısa sürede dönüş'],
-      color: 'text-green-600',
-      bg: 'bg-green-50'
-    },
-    {
-      icon: Clock,
-      title: 'Çalışma Saatleri',
-      details: ['7/24 Kesintisiz Hizmet', 'Acil Durumlarda Her An'],
-      color: 'text-purple-600',
-      bg: 'bg-purple-50'
     }
   ];
 
@@ -75,10 +61,10 @@ const ContactPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Contact Info Cards */}
+          {/* Contact Info Cards */}
       <div className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <div className="grid md:grid-cols-2 gap-6 mb-16 max-w-3xl mx-auto">
             {contactInfo.map((info, idx) => (
               <motion.div
                 key={info.title}

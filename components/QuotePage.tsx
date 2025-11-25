@@ -185,9 +185,6 @@ const QuotePage: React.FC<QuotePageProps> = ({ onHome, onViewOffers }) => {
               
               {/* Header for Desktop */}
               <div className="mb-6">
-                 <button onClick={onHome} className="flex items-center gap-2 text-gray-400 hover:text-gray-600 text-sm font-medium mb-4 transition-colors">
-                    <ArrowLeft size={16} /> Ana Sayfaya Dön
-                 </button>
                  <h1 className="text-3xl font-display font-bold text-gray-900 leading-tight">
                     Hızlı Teklif Al <br />
                     <span className="text-brand-orange">Yola Devam Et</span>

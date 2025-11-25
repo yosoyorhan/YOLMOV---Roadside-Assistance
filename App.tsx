@@ -25,16 +25,19 @@ import CareerPage from './components/CareerPage';
 import BlogPage from './components/BlogPage';
 import NotFoundPage from './components/NotFoundPage';
 import CampaignsPage from './components/CampaignsPage';
+import CampaignDetailPage from './components/CampaignDetailPage';
 import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsOfServicePage from './components/TermsOfServicePage';
 import CookieConsentBanner from './components/CookieConsentBanner';
 import { Provider, Customer } from './types';
 import { initDemoData } from './services/demoData';
+import { requestNotificationPermission, startTestNotifications } from './services/testNotifications';
 
 function App() {
   // Expanded routing state
-  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog' | 'campaigns' | 'privacy-policy' | 'terms-of-service' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard' | 'not-found'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog' | 'campaigns' | 'campaign-detail' | 'privacy-policy' | 'terms-of-service' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard' | 'not-found'>('home');
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [customer, setCustomer] = useState<Customer | null>(() => {
     const saved = localStorage.getItem('yolmov_customer');
     return saved ? JSON.parse(saved) : null;
@@ -50,6 +53,21 @@ function App() {
   // Initialize demo data on first load
   useEffect(() => {
     initDemoData();
+  }, []);
+
+  // Initialize test notifications
+  useEffect(() => {
+    const initNotifications = async () => {
+      const permitted = await requestNotificationPermission();
+      if (permitted) {
+        // 3 saniye sonra test bildirimlerini başlat
+        setTimeout(() => {
+          startTestNotifications();
+        }, 3000);
+      }
+    };
+    
+    initNotifications();
   }, []);
 
   // Scroll to top when page changes
@@ -73,6 +91,9 @@ function App() {
       const detail = (e as CustomEvent).detail;
       if (detail?.page) {
         setCurrentPage(detail.page);
+        if (detail.campaign) {
+          setSelectedCampaign(detail.campaign);
+        }
       }
     };
     window.addEventListener('yolmov:navigate', handler);
@@ -184,6 +205,15 @@ function App() {
         );
       case 'campaigns':
         return <CampaignsPage onBack={() => setCurrentPage('home')} />;
+      case 'campaign-detail':
+        return selectedCampaign ? (
+          <CampaignDetailPage 
+            campaign={selectedCampaign}
+            onBack={() => setCurrentPage('campaigns')} 
+          />
+        ) : (
+          <div className="flex items-center justify-center h-[50vh]">Campaign not found</div>
+        );
       case 'privacy-policy':
         return <PrivacyPolicyPage onBack={() => setCurrentPage('home')} />;
       case 'terms-of-service':
