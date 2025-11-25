@@ -274,15 +274,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       setOfferMessage('');
    };
 
-  const handleUnlockJob = (jobId: string) => {
-    if (credits < 1) {
-      alert('Yetersiz kredi! Lütfen kredi yükleyin.');
-      return;
-    }
-    setCredits(prev => prev - 1);
-    setUnlockedJobs(prev => [...prev, jobId]);
-  };
-
   const handleStartOperation = (job: JobRequest) => {
     setActiveJob(job);
     setRequests(prev => prev.filter(r => r.id !== job.id));
@@ -589,13 +580,13 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               ) : (
                 <button
                   onClick={() => {
-                    handleUnlockJob(job.id);
+                    setSelectedJobForQuote(job);
+                    setQuotePrice(job.estimatedPrice?.toString() || '');
                     setSelectedJobForDetail(null);
                   }}
-                  disabled={credits < 1}
-                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
                 >
-                  <Unlock size={18} /> Kilidi Aç (1 Kredi)
+                  <Send size={18} /> Teklif Gönder
                 </button>
               )}
               <button
@@ -1385,13 +1376,15 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredNewJobs.map(job => {
             const isUnlocked = unlockedJobs.includes(job.id);
+            const isOffering = offeringJobId === job.id;
+            const hasError = offerError === job.id;
             return (
               <motion.div
                 key={job.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`bg-white rounded-2xl border-2 p-6 transition-all hover:shadow-xl ${
-                  isUnlocked ? 'border-green-300 bg-green-50/50' : 'border-slate-200'
+                  isUnlocked ? 'border-green-300 bg-green-50/50' : hasError ? 'border-red-300 bg-red-50/50' : 'border-slate-200'
                 }`}
               >
                 {/* Header */}
@@ -1459,21 +1452,28 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                   </button>
                   {isUnlocked ? (
                     <button
+                      onClick={() => handleStartOperation(job)}
+                      className="flex-1 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                    >
+                      Operasyonu Başlat <ArrowRight size={16} />
+                    </button>
+                  ) : isOffering ? (
+                    <div className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-blue-100">
+                      <Loader2 size={14} className="animate-spin" /> Değerlendiriliyor...
+                    </div>
+                  ) : hasError ? (
+                    <div className="flex-1 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-red-100">
+                      <AlertTriangle size={14} /> Ret Edildi
+                    </div>
+                  ) : (
+                    <button
                       onClick={() => {
                         setSelectedJobForQuote(job);
                         setQuotePrice(job.estimatedPrice?.toString() || '');
                       }}
-                      className="flex-1 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all flex items-center justify-center gap-2"
+                      className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
                     >
                       <Send size={16} /> Teklif Ver
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleUnlockJob(job.id)}
-                      disabled={credits < 1}
-                      className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <Unlock size={16} /> Kilidi Aç (1 Kr)
                     </button>
                   )}
                 </div>
