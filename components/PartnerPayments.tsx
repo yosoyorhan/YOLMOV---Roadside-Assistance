@@ -181,17 +181,6 @@ export const PartnerPayments: React.FC = () => {
           <p className="text-sm text-blue-100 mb-1">Net Kazanç</p>
           <p className="text-3xl font-bold">{netEarnings.toLocaleString()} ₺</p>
         </div>
-
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-5 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <Clock size={24} />
-            </div>
-            <Receipt size={20} className="opacity-60" />
-          </div>
-          <p className="text-sm text-yellow-100 mb-1">Bekleyen Ödemeler</p>
-          <p className="text-3xl font-bold">{pendingPayments.toLocaleString()} ₺</p>
-        </div>
       </div>
 
       {/* Commission Info Card */}
@@ -203,7 +192,7 @@ export const PartnerPayments: React.FC = () => {
           <div className="flex-1">
             <h3 className="text-lg font-bold text-orange-900 mb-2">Komisyon Yapısı</h3>
             <p className="text-sm text-orange-700 mb-3">
-              YOLMOV platformu üzerinden gerçekleştirdiğiniz her iş için %10 komisyon kesintisi uygulanmaktadır. 
+              YOLMOV platformu üzerinden gerçekleştirdiğiniz işlerin kazançları aşağıda gösterilmektedir. 
               Bu komisyon, platform altyapısı, müşteri kazanımı, pazarlama ve teknik destek maliyetlerini karşılamaktadır.
             </p>
             <div className="flex items-center gap-6 text-sm">

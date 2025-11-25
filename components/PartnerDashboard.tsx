@@ -274,6 +274,15 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       setOfferMessage('');
    };
 
+  const handleUnlockJob = (jobId: string) => {
+    if (credits < 1) {
+      alert('Yetersiz kredi! Lütfen kredi yükleyin.');
+      return;
+    }
+    setCredits(prev => prev - 1);
+    setUnlockedJobs(prev => [...prev, jobId]);
+  };
+
   const handleStartOperation = (job: JobRequest) => {
     setActiveJob(job);
     setRequests(prev => prev.filter(r => r.id !== job.id));
@@ -749,61 +758,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
       );
    };
 
-  const renderHistoryDetailModal = () => {
-    if (!selectedHistoryItem) return null;
-    const item = selectedHistoryItem;
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-         <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-         >
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-               <div>
-                  <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">İş Detayı <span className="text-blue-600">#{item.id}</span></h2>
-                  <p className="text-sm text-slate-500">{item.date}</p>
-               </div>
-               <button onClick={() => setSelectedHistoryItem(null)} className="p-2 bg-white rounded-full border border-slate-200 text-slate-500 hover:bg-slate-100"><X size={20} /></button>
-            </div>
-            <div className="p-6 md:p-8 overflow-y-auto">
-               <div className="flex justify-center mb-8">
-                  <div className={`flex flex-col items-center px-6 py-3 rounded-2xl border ${item.status === 'completed' ? 'bg-green-50 border-green-100 text-green-700' : item.status === 'cancelled' ? 'bg-red-50 border-red-100 text-red-700' : 'bg-gray-50 border-gray-100 text-gray-700'}`}>
-                     {item.status === 'completed' ? <CheckCircle size={32} className="mb-1" /> : <XCircle size={32} className="mb-1" />}
-                     <span className="font-bold text-lg">{item.status === 'completed' ? 'Başarıyla Tamamlandı' : item.status === 'cancelled' ? 'İptal Edildi' : 'İade Edildi'}</span>
-                  </div>
-               </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                     <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Finansal Detaylar</h3>
-                     <div className="space-y-3">
-                        <div className="flex justify-between text-sm"><span className="text-slate-600">Hizmet Bedeli</span><span className="font-bold text-slate-900">₺{item.price}</span></div>
-                        <div className="flex justify-between text-base pt-3 border-t border-slate-100"><span className="font-bold text-slate-800">Toplam Kazanç</span><span className="font-bold text-green-600 text-lg">₺{item.earnings}</span></div>
-                     </div>
-                     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded-xl text-xs text-yellow-800"><Info size={14} className="inline mr-1 mb-0.5" />Bu işlem için <strong>1 Kredi</strong> kullanılmıştır.</div>
-                  </div>
-                  <div className="space-y-4">
-                     <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Müşteri & Rota</h3>
-                     <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                        <div className="flex items-center gap-3 mb-3">
-                           <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold">{item.customer.charAt(0)}</div>
-                           <div><p className="font-bold text-slate-800">{item.customer}</p><p className="text-xs text-slate-500">Platin Üye</p></div>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 bg-white/50 p-2 rounded-lg"><ShieldAlert size={16} className="text-orange-500" /><span>05** *** ** 12</span><span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded ml-auto">Gizli</span></div>
-                     </div>
-                     <div>
-                        <div className="flex items-start gap-3 mb-3"><div className="mt-1 w-2 h-2 rounded-full bg-blue-500"></div><div><p className="text-xs text-slate-400 font-bold">BAŞLANGIÇ</p><p className="text-sm font-medium text-slate-800">{item.route.split('>')[0]}</p></div></div>
-                        <div className="flex items-start gap-3"><div className="mt-1 w-2 h-2 rounded-full bg-slate-800"></div><div><p className="text-xs text-slate-400 font-bold">VARIŞ</p><p className="text-sm font-medium text-slate-800">{item.route.split('>')[1] || 'Yerinde Hizmet'}</p></div></div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </motion.div>
-      </div>
-    );
-  };
-
   const renderAddCreditModal = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden p-6">
@@ -822,7 +776,65 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     </div>
   );
 
-  const renderHistoryTab = () => (
+  const renderHistoryTab = () => {
+    // Eğer detay seçiliyse, detay view göster
+    if (selectedHistoryItem) {
+      const item = selectedHistoryItem;
+      return (
+        <div className="p-4 md:p-6 space-y-6">
+          {/* Back Button */}
+          <button
+            onClick={() => setSelectedHistoryItem(null)}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold mb-4"
+          >
+            <ChevronRight size={20} className="rotate-180" /> Geri Dön
+          </button>
+
+          {/* Detail View */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                  İş Detayı <span className="text-blue-600">#{item.id}</span>
+                </h2>
+                <p className="text-sm text-slate-500">{item.date}</p>
+              </div>
+              <div className={`px-4 py-2 rounded-xl font-bold ${item.status === 'completed' ? 'bg-green-50 text-green-700' : item.status === 'cancelled' ? 'bg-red-50 text-red-700' : 'bg-gray-50 text-gray-700'}`}>
+                {item.status === 'completed' ? '✓ Tamamlandı' : item.status === 'cancelled' ? '✗ İptal' : '↩ İade'}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Finansal Detaylar</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm"><span className="text-slate-600">Hizmet Bedeli</span><span className="font-bold text-slate-900">₺{item.price}</span></div>
+                  <div className="flex justify-between text-base pt-3 border-t border-slate-100"><span className="font-bold text-slate-800">Toplam Kazanç</span><span className="font-bold text-green-600 text-lg">₺{item.earnings}</span></div>
+                </div>
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded-xl text-xs text-yellow-800"><Info size={14} className="inline mr-1 mb-0.5" />Bu işlem için <strong>1 Kredi</strong> kullanılmıştır.</div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Müşteri & Rota</h3>
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold">{item.customer.charAt(0)}</div>
+                    <div><p className="font-bold text-slate-800">{item.customer}</p><p className="text-xs text-slate-500">Platin Üye</p></div>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-slate-500 bg-white/50 p-2 rounded-lg"><ShieldAlert size={16} className="text-orange-500" /><span>05** *** ** 12</span><span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded ml-auto">Gizli</span></div>
+                </div>
+                <div>
+                  <div className="flex items-start gap-3 mb-3"><div className="mt-1 w-2 h-2 rounded-full bg-blue-500"></div><div><p className="text-xs text-slate-400 font-bold">BAŞLANGIÇ</p><p className="text-sm font-medium text-slate-800">{item.route.split('>')[0]}</p></div></div>
+                  <div className="flex items-start gap-3"><div className="mt-1 w-2 h-2 rounded-full bg-slate-800"></div><div><p className="text-xs text-slate-400 font-bold">VARIŞ</p><p className="text-sm font-medium text-slate-800">{item.route.split('>')[1] || 'Yerinde Hizmet'}</p></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Liste view
+    return (
     <div className="p-4 md:p-6 space-y-6">
        <div className="flex flex-col md:flex-row justify-between gap-4">
           <div className="relative flex-1">
@@ -892,7 +904,8 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
           </div>
        </div>
     </div>
-  );
+    );
+  };
 
   const renderWalletTab = () => (
     <div className="p-4 md:p-6 space-y-6">
@@ -966,7 +979,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
              <h2 className="text-xl font-bold text-slate-800">Araç Filosu</h2>
              <p className="text-sm text-slate-500">Kayıtlı araçlarınızı yönetin ve durumlarını izleyin.</p>
           </div>
-          <button className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 flex items-center gap-2">
+          <button
+             onClick={() => alert('Yeni araç ekleme formu açılacak. Geliştirilecek.')}
+             className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 flex items-center gap-2"
+          >
              <Plus size={16} /> Yeni Araç Ekle
           </button>
        </div>
@@ -1295,7 +1311,12 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
               <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4"><FileText size={24} /></div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">Talep Oluştur</h3>
               <p className="text-slate-500 text-sm mb-6">Finansal konular veya şikayetler için bilet oluşturun.</p>
-              <button className="w-full py-3 bg-white border-2 border-slate-100 text-slate-700 rounded-xl font-bold hover:border-blue-200 hover:text-blue-600 transition-colors">Yeni Bilet Aç</button>
+              <button
+                 onClick={() => alert('Yeni destek bileti oluşturma formu açılacak. Geliştirilecek.')}
+                 className="w-full py-3 bg-white border-2 border-slate-100 text-slate-700 rounded-xl font-bold hover:border-blue-200 hover:text-blue-600 transition-colors"
+              >
+                 Yeni Bilet Aç
+              </button>
            </div>
         </div>
 
@@ -1721,29 +1742,38 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     <div className="p-4 md:p-6 space-y-6">
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
+        <button
+          onClick={() => setActiveTab('requests')}
+          className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left"
+        >
           <div className="flex items-center justify-between mb-2">
             <Bell size={24} className="opacity-80" />
             <span className="text-3xl font-black">{requests.length}</span>
           </div>
           <p className="text-sm font-bold opacity-80">Yeni İş Talebi</p>
-        </div>
+        </button>
 
-        <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-2xl p-6 text-white shadow-lg">
+        <button
+          onClick={() => setActiveTab('history')}
+          className="bg-gradient-to-br from-green-600 to-green-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left"
+        >
           <div className="flex items-center justify-between mb-2">
             <CheckCircle size={24} className="opacity-80" />
             <span className="text-3xl font-black">{MOCK_HISTORY.filter(h => h.status === 'completed').length}</span>
           </div>
           <p className="text-sm font-bold opacity-80">Tamamlanan İş</p>
-        </div>
+        </button>
 
-        <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-6 text-white shadow-lg">
+        <button
+          onClick={() => setActiveTab('emptyTrucks')}
+          className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all text-left"
+        >
           <div className="flex items-center justify-between mb-2">
             <Truck size={24} className="opacity-80" />
             <span className="text-3xl font-black">{emptyTrucks.length}</span>
           </div>
           <p className="text-sm font-bold opacity-80">Boş Araç</p>
-        </div>
+        </button>
 
         <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-2">
@@ -2372,23 +2402,21 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
     <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800">
       
       {/* SIDEBAR */}
-      <div className="w-20 lg:w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 transition-all duration-300 sticky top-0 h-screen z-30">
+      <div className="w-20 lg:w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 transition-all duration-300 sticky top-0 h-screen z-30 overflow-y-auto">
         <div>
-          <div className="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-800">
+          <div className="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-800 sticky top-0 bg-slate-900 z-10">
             <img src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-logo-cutter-beyaz.png" alt="Yolmov Partner" className="hidden lg:block h-8 w-auto object-contain" />
             <img src="https://raw.githubusercontent.com/yosoyorhan/repo2/refs/heads/main/yolmov-icon-beyaz-removebg-preview.png" alt="Yolmov Icon" className="lg:hidden h-8 w-auto object-contain" />
           </div>
 
-          <nav className="mt-8 px-2 space-y-2">
+          <nav className="mt-8 px-2 space-y-2 pb-4">
             {[
               { id: 'home', label: 'Ana Sayfa', icon: LayoutDashboard },
-              { id: 'newJobs', label: 'Yeni İşler', icon: Star },
-              { id: 'requests', label: 'Talep Havuzu', icon: Bell },
+              { id: 'requests', label: 'İş Talepleri', icon: Bell },
               { id: 'active', label: 'Aktif Görev', icon: Navigation },
               { id: 'emptyTrucks', label: 'Boş Dönen Araçlar', icon: Truck },
-              { id: 'service_routes', label: 'Hizmet Rotaları', icon: Route },
               { id: 'offer_history', label: 'Teklif Geçmişim', icon: FileText },
-              { id: 'payments', label: 'Ödemeler & Komisyon', icon: Receipt },
+              { id: 'payments', label: 'Ödemeler', icon: Receipt },
               { id: 'documents', label: 'Belgelerim', icon: FileCheck },
               { id: 'history', label: 'Geçmiş İşler', icon: History },
               { id: 'wallet', label: 'Finansal Durum', icon: Wallet },
@@ -2464,186 +2492,10 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
 
         <main className="flex-1 overflow-y-auto p-0 lg:p-6 relative">
           {/* Render Content Based on Active Tab */}
-          {activeTab === 'requests' && (
-            <div className="space-y-6 p-4 md:p-6">
-               {/* Enhanced Filter Bar */}
-               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                 <div className="flex w-full md:w-auto bg-white p-1 rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-                    {[{ id: 'all', label: 'Tümü' }, { id: 'nearest', label: 'En Yakın' }, { id: 'urgent', label: 'Acil İşler' }].map(f => (
-                       <button key={f.id} onClick={() => setFilterMode(f.id as any)} className={`flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${filterMode === f.id ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>{f.label}</button>
-                    ))}
-                 </div>
-                 <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-                    <button onClick={() => setViewMode('list')} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${viewMode === 'list' ? 'bg-blue-50 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}><List size={16} /> Liste</button>
-                    <div className="w-px h-4 bg-slate-200 mx-1"></div>
-                    <button onClick={() => setViewMode('map')} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${viewMode === 'map' ? 'bg-blue-50 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}><Map size={16} /> Harita</button>
-                 </div>
-               </div>
-
-                      {/* Demo Customer Requests Section */}
-                      <div className="bg-white border border-slate-200 rounded-2xl p-4">
-                         <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-sm font-bold text-slate-700">Açık Müşteri Talepleri (Demo)</h3>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">B2C</span>
-                         </div>
-                         {customerRequests.length ? (
-                            <div className="space-y-3">
-                               {customerRequests.map(r => (
-                                  <div key={r.id} className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-3">
-                                     <div className="flex flex-col">
-                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{r.serviceType}</span>
-                                        <span className="text-sm font-bold text-slate-800">#{r.id}</span>
-                                        <span className="text-[11px] text-slate-500 truncate max-w-[180px]">{r.description}</span>
-                                     </div>
-                                     <button onClick={() => handleOpenCustomerOfferModal(r)} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1"><Send size={14} /> Teklif Ver</button>
-                                  </div>
-                               ))}
-                            </div>
-                         ) : (
-                            <p className="text-xs text-slate-400">Açık talep yok.</p>
-                         )}
-                      </div>
-
-               {filteredRequests.length > 0 ? (
-                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                   {filteredRequests.map((req) => {
-                      const isUnlocked = unlockedJobs.includes(req.id);
-                      const isOffering = offeringJobId === req.id;
-                      const hasError = offerError === req.id;
-                      return (
-                         <motion.div 
-                           key={req.id} 
-                           initial={{ opacity: 0, y: 20 }} 
-                           animate={{ opacity: 1, y: 0 }} 
-                           exit={{ opacity: 0, scale: 0.95 }} 
-                           className={`bg-white rounded-3xl border transition-all relative overflow-hidden group hover:shadow-xl ${hasError ? 'border-red-200 bg-red-50' : isUnlocked ? 'border-green-200 shadow-lg ring-1 ring-green-100' : 'border-slate-200 shadow-sm'}`}
-                         >
-                            <div className="p-6">
-                               {/* Header Section */}
-                               <div className="flex justify-between items-start mb-6">
-                                  <div className="flex items-start gap-4">
-                                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors shrink-0 shadow-sm ${isUnlocked ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
-                                        {req.serviceType.includes('Çekici') ? <Truck size={28} /> : req.serviceType.includes('Akü') ? <Zap size={28} /> : <Wrench size={28} />}
-                                     </div>
-                                     <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                           <h3 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">{req.serviceType}</h3>
-                                           {req.urgency === 'high' && !hasError && (
-                                              <span className="flex items-center gap-1 bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse border border-red-200">
-                                                 <AlertTriangle size={10} /> ACİL
-                                              </span>
-                                           )}
-                                        </div>
-                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">#{req.id} • {req.timestamp}</p>
-                                     </div>
-                                  </div>
-                               </div>
-
-                               {/* Timeline Route */}
-                               <div className="relative pl-4 py-2 space-y-8 my-8 border-l-[3px] border-slate-100 ml-2.5">
-                                  <div className="relative">
-                                     <div className="absolute -left-[21px] top-1 w-5 h-5 rounded-full bg-blue-500 border-[4px] border-white shadow-md ring-1 ring-slate-100"></div>
-                                     <div>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Alınacak Konum</p>
-                                        <p className="font-bold text-slate-900 text-lg leading-tight">{req.location}</p>
-                                        <p className="text-xs text-blue-600 font-bold mt-1 flex items-center gap-1 bg-blue-50 w-fit px-2 py-0.5 rounded"><Navigation size={10} /> {req.distance} uzaklıkta</p>
-                                     </div>
-                                  </div>
-                                  {req.dropoffLocation && (
-                                     <div className="relative">
-                                        <div className="absolute -left-[21px] top-1 w-5 h-5 rounded-full bg-slate-800 border-[4px] border-white shadow-md ring-1 ring-slate-100"></div>
-                                        <div>
-                                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Teslim Noktası</p>
-                                           <p className="font-bold text-slate-900 text-lg leading-tight">{req.dropoffLocation}</p>
-                                        </div>
-                                     </div>
-                                  )}
-                               </div>
-
-                               {/* Footer Actions */}
-                               <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-6 border-t border-slate-50 gap-4 sm:gap-0">
-                                  <div className="flex items-center gap-3">
-                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border-2 border-white shadow-sm ${isUnlocked ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                                        {isUnlocked ? req.customerName.charAt(0) : <Lock size={16} />}
-                                     </div>
-                                     <div>
-                                        <p className="text-sm font-bold text-slate-800">{isUnlocked ? req.customerName : `${req.customerName.split(' ')[0]} ***`}</p>
-                                        <p className="text-xs text-slate-400 font-medium">{req.vehicleInfo}</p>
-                                     </div>
-                                  </div>
-                                  
-                                  <div className="flex gap-2 w-full sm:w-auto flex-col sm:flex-row items-end">
-                                     {!isUnlocked ? (
-                                        hasError ? (
-                                           <div className="flex-1 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 w-full border border-red-100">
-                                              <AlertTriangle size={16} /> Teklif Kabul Edilmedi
-                                           </div>
-                                        ) : isOffering ? (
-                                           <div className="flex-1 bg-blue-50 text-blue-600 px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 w-full border border-blue-100 animate-pulse">
-                                              <Loader2 size={16} className="animate-spin" /> Müşteri Değerlendiriyor...
-                                           </div>
-                                        ) : (
-                                           <div className="flex flex-col items-end gap-1 w-full sm:w-auto">
-                                              <div className="flex gap-2 w-full sm:w-auto">
-                                                 <button className="flex-1 sm:flex-none px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 text-center transition-colors" disabled={isOffering}>Reddet</button>
-                                                 <button 
-                                                    onClick={() => handleOpenQuoteModal(req)} 
-                                                    className="flex-[2] sm:flex-none px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-200 flex items-center justify-center gap-2 whitespace-nowrap min-w-[160px] transition-all active:scale-95 bg-blue-600 text-white hover:bg-blue-700"
-                                                 >
-                                                    <Send size={16} /> <span className="hidden sm:inline">Teklif Gönder</span><span className="sm:hidden">Teklif Ver</span>
-                                                 </button>
-                                              </div>
-                                              <span className="text-[10px] text-slate-400 italic">Onaylanırsa 1 Kredi düşer</span>
-                                           </div>
-                                        )
-                                     ) : (
-                                        <div className="flex gap-2 w-full sm:w-auto">
-                                           <button className="flex-1 sm:flex-none w-12 h-12 flex items-center justify-center rounded-xl bg-green-50 text-green-600 hover:bg-green-100 border border-green-200 transition-colors shadow-sm" title="Ara"><Phone size={20} /></button>
-                                           <button className="flex-1 sm:flex-none w-12 h-12 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors shadow-sm" title="Mesaj"><MessageSquare size={20} /></button>
-                                           <button 
-                                             onClick={() => handleStartOperation(req)} 
-                                             className="flex-[2] sm:flex-none px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 shadow-xl shadow-slate-200 flex items-center justify-center gap-2 whitespace-nowrap transition-transform active:scale-95"
-                                           >
-                                              <span className="hidden sm:inline">Operasyonu Başlat</span><span className="sm:hidden">Başlat</span><ArrowRight size={16} />
-                                           </button>
-                                        </div>
-                                     )}
-                                  </div>
-                               </div>
-                            </div>
-
-                            {/* Bottom Countdown Bar */}
-                            {!isUnlocked && req.expiresIn && !hasError && !isOffering && (
-                               <div className="absolute bottom-0 left-0 w-full h-1.5 bg-slate-100">
-                                  <div 
-                                    className="h-full bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#ef4444_10px,#ef4444_20px)] animate-move-stripes w-full"
-                                    style={{ backgroundSize: '28px 28px' }} // Simulated stripe effect
-                                  ></div>
-                               </div>
-                            )}
-                            <style>{`
-                               @keyframes move-stripes {
-                                  0% { background-position: 0 0; }
-                                  100% { background-position: 28px 0; }
-                               }
-                               .animate-move-stripes {
-                                  animation: move-stripes 1s linear infinite;
-                               }
-                            `}</style>
-                         </motion.div>
-                      );
-                   })}
-                 </div>
-               ) : (
-                 <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-slate-200">
-                   <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400"><Bell size={32} /></div>
-                   <h3 className="text-xl font-bold text-slate-700">Şu an yeni talep yok</h3>
-                   <p className="text-slate-400 max-w-xs mx-auto mt-2">Seçili kriterlere uygun iş bulunamadı.</p>
-                   <button onClick={() => setFilterMode('all')} className="mt-6 px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-colors">Filtreleri Temizle</button>
-                 </div>
-               )}
-            </div>
-          )}
+          {activeTab === 'home' && renderHomeTab()}
+          {activeTab === 'requests' && renderNewJobsTab()}
+          {activeTab === 'newJobs' && renderNewJobsTab()}
+          {activeTab === 'emptyTrucks' && renderEmptyTrucksTab()}
           {activeTab === 'active' && (
             <div className="h-full flex flex-col lg:flex-row">
                {activeJob ? (
@@ -2671,9 +2523,6 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
                )}
             </div>
           )}
-          {activeTab === 'home' && renderHomeTab()}
-          {activeTab === 'newJobs' && renderNewJobsTab()}
-          {activeTab === 'emptyTrucks' && renderEmptyTrucksTab()}
           {activeTab === 'offer_history' && <PartnerOfferHistory />}
           {activeTab === 'payments' && <PartnerPayments />}
           {activeTab === 'documents' && <PartnerDocuments />}
@@ -2681,11 +2530,9 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onLogout }) => {
           {activeTab === 'wallet' && renderWalletTab()}
           {activeTab === 'settings' && renderSettingsTab()}
           {activeTab === 'fleet' && renderFleetTab()}
-          {activeTab === 'service_routes' && renderServiceRoutesTab()}
           {activeTab === 'support' && renderSupportTab()}
         </main>
       </div>
-      <AnimatePresence>{selectedHistoryItem && renderHistoryDetailModal()}</AnimatePresence>
       <AnimatePresence>{showAddCreditModal && renderAddCreditModal()}</AnimatePresence>
       <AnimatePresence>{selectedJobForQuote && renderQuoteModal()}</AnimatePresence>
       <AnimatePresence>{selectedRequestForOffer && renderCustomerOfferModal()}</AnimatePresence>
