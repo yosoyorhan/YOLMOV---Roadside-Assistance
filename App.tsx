@@ -28,6 +28,7 @@ import CampaignsPage from './components/CampaignsPage';
 import CampaignDetailPage from './components/CampaignDetailPage';
 import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsOfServicePage from './components/TermsOfServicePage';
+import NotificationTestPage from './components/NotificationTestPage';
 import CookieConsentBanner from './components/CookieConsentBanner';
 import { Provider, Customer } from './types';
 import { initDemoData } from './services/demoData';
@@ -35,7 +36,7 @@ import { requestNotificationPermission, startTestNotifications } from './service
 
 function App() {
   // Expanded routing state
-  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog' | 'campaigns' | 'campaign-detail' | 'privacy-policy' | 'terms-of-service' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard' | 'not-found'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'services' | 'faq' | 'contact' | 'career' | 'blog' | 'campaigns' | 'campaign-detail' | 'privacy-policy' | 'terms-of-service' | 'login-customer' | 'login-partner' | 'partner-register' | 'listing' | 'quote' | 'detail' | 'partner-dashboard' | 'customer-profile' | 'customer-offers' | 'admin-login' | 'admin-dashboard' | 'notification-test' | 'not-found'>('home');
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [customer, setCustomer] = useState<Customer | null>(() => {
@@ -88,6 +89,11 @@ function App() {
     if (path === '/operasyon' || path.startsWith('/operasyon/')) {
       setCurrentPage('admin-login');
       // Replace URL without reload
+      window.history.replaceState({}, '', '/');
+    }
+    // Bildirim test sayfası için
+    if (path === '/notification-test' || path.startsWith('/notification-test')) {
+      setCurrentPage('notification-test');
       window.history.replaceState({}, '', '/');
     }
   }, []);
@@ -225,6 +231,8 @@ function App() {
         return <PrivacyPolicyPage onBack={() => setCurrentPage('home')} />;
       case 'terms-of-service':
         return <TermsOfServicePage onBack={() => setCurrentPage('home')} />;
+      case 'notification-test':
+        return <NotificationTestPage />;
       case 'not-found':
         return <NotFoundPage onNavigateHome={() => setCurrentPage('home')} />;
       case 'home':

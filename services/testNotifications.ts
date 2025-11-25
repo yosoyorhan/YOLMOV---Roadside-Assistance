@@ -55,14 +55,60 @@ export const stopTestNotifications = () => {
 };
 
 const sendTestNotification = () => {
-  if ('Notification' in window && Notification.permission === 'granted') {
-    const message = TEST_MESSAGES[currentMessageIndex];
+  if (!('Notification' in window)) {
+    console.warn('⚠️ Notification API desteklenmiyor');
+    return;
+  }
+
+  if (Notification.permission !== 'granted') {
+    console.warn('⚠️ Bildirim izni verilmemiş');
+    return;
+  }
+
+  const message = TEST_MESSAGES[currentMessageIndex];
+  
+  // Service Worker varsa onun üzerinden gönder
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    console.log('📱 Service Worker üzerinden bildirim gönderiliyor...');
     
+    // Service Worker'a mesaj gönder
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.showNotification(message.title, {
+        body: message.body,
+        icon: message.icon || '/yolmov-icon.png',
+        badge: message.icon || '/yolmov-icon.png',
+        tag: 'yolmov-test-' + Date.now(),
+        requireInteraction: false,
+        silent: false,
+        data: {
+          url: '/',
+          timestamp: Date.now()
+        }
+      }).then(() => {
+        console.log(`✅ Service Worker bildirimi gönderildi: ${message.title}`);
+      }).catch((error) => {
+        console.error('❌ Service Worker bildirimi gönderilemedi:', error);
+        // Fallback: Native Notification API
+        sendNativeNotification(message);
+      });
+    });
+  } else {
+    // Service Worker yoksa native API kullan
+    console.log('📱 Native Notification API kullanılıyor...');
+    sendNativeNotification(message);
+  }
+  
+  // Sıradaki mesaja geç
+  currentMessageIndex = (currentMessageIndex + 1) % TEST_MESSAGES.length;
+};
+
+const sendNativeNotification = (message: typeof TEST_MESSAGES[0]) => {
+  try {
     const notification = new Notification(message.title, {
       body: message.body,
       icon: message.icon,
       badge: message.icon,
-      tag: 'yolmov-test',
+      tag: 'yolmov-test-' + Date.now(),
       requireInteraction: false,
       silent: false
     });
@@ -72,12 +118,9 @@ const sendTestNotification = () => {
       notification.close();
     };
 
-    console.log(`✅ Test bildirimi gönderildi: ${message.title}`);
-    
-    // Sıradaki mesaja geç
-    currentMessageIndex = (currentMessageIndex + 1) % TEST_MESSAGES.length;
-  } else {
-    console.warn('⚠️ Bildirim izni verilmemiş veya desteklenmiyor');
+    console.log(`✅ Native bildirimi gönderildi: ${message.title}`);
+  } catch (error) {
+    console.error('❌ Native bildirim hatası:', error);
   }
 };
 
